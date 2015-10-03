@@ -18,16 +18,23 @@ func ReadCSV(fp *os.File) ([]Todo, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		items := strings.Split(line, ",")
+        arch := false
 
 		no, err := strconv.Atoi(strings.TrimSpace(items[0]))
+
 		if err != nil {
 			return nil, err
 		}
+
+        if strings.TrimSpace(items[3]) == "true" {
+            arch = true
+        }
 
 		todo := &Todo{
 			no:    no,
 			label: strings.TrimSpace(items[1]),
 			title: strings.TrimSpace(items[2]),
+            isArchived: arch,
 		}
 		todos = append(todos, (*todo))
 	}
