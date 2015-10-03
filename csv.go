@@ -9,6 +9,10 @@ import (
 
 func ReadCSV(fp *os.File) ([]Todo, error) {
 	scanner := bufio.NewScanner(fp)
+    if err := scanner.Err(); err != nil {
+        return nil, err
+    }
+
 	todos := make([]Todo, 0, 100)
 
 	for scanner.Scan() {
