@@ -17,49 +17,49 @@ const (
 )
 
 func loopDraw(fp *os.File, conf yalzo.Config) {
-	view := yalzo.NewView(fp, conf.Labels)
+	dr := yalzo.NewDraw(fp, conf.Labels)
 
 	for {
-		view.Draw()
+		dr.Drawer.Draw()
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
 			switch ev.Key {
 			case termbox.KeyCtrlQ:
 				return
 			case termbox.KeyEsc:
-				view.DoKeyEsc()
+				dr.DoKeyEsc()
 			case termbox.KeyArrowLeft:
-				view.DoKeyArrowLeft()
+				dr.DoKeyArrowLeft()
 			case termbox.KeyCtrlB:
-				view.DoKeyCtrlB()
+				dr.DoKeyCtrlB()
 			case termbox.KeyArrowRight:
-				view.DoKeyArrowRight()
+				dr.DoKeyArrowRight()
 			case termbox.KeyCtrlF:
-				view.DoKeyCtrlF()
+				dr.DoKeyCtrlF()
 			case termbox.KeyBackspace, termbox.KeyBackspace2:
-				view.DoKeyBackspace()
+				dr.DoKeyBackspace()
 			case termbox.KeyDelete:
-				view.DoKeyDelete()
+				dr.DoKeyDelete()
 			case termbox.KeyTab:
-				view.DoKeyTab()
+				dr.DoKeyTab()
 			case termbox.KeyCtrlX:
-				view.DoKeyCtrlX()
+				dr.DoKeyCtrlX()
 			case termbox.KeyCtrlW:
-				view.DoKeyCtrlW()
+				dr.DoKeyCtrlW()
 			case termbox.KeyCtrlL:
-				view.DoKeyCtrlL()
+				dr.DoKeyCtrlL()
 			case termbox.KeyCtrlD:
-				view.DoKeyCtrlD()
+				dr.DoKeyCtrlD()
 			case termbox.KeyCtrlA:
-				view.DoKeyCtrlA()
+				dr.DoKeyCtrlA()
 			case termbox.KeyCtrlR:
-				view.DoKeyCtrlR()
+				dr.DoKeyCtrlR()
 			case termbox.KeySpace:
-				view.DoKeySpace()
+				dr.DoKeySpace()
 			case termbox.KeyEnter:
-				view.DoEnter()
+				dr.DoEnter()
 			default:
-				view.DoChar(ev.Ch)
+				dr.DoChar(ev.Ch)
 			}
 		case termbox.EventError:
 			panic(ev.Err)
@@ -94,7 +94,7 @@ func main() {
 	conf := yalzo.LoadConf(cf)
 
 	// open data file
-	df, err := os.Open(path.Join(yalzoPath, DATA_FILE_NAME))
+	df, err := os.OpenFile(path.Join(yalzoPath, DATA_FILE_NAME), os.O_RDWR, 0666)
 	if err != nil {
 		panic(err)
 	}

@@ -38,4 +38,4 @@ func (n Nothing) DoKeyCtrlA()      {}
 func (n Nothing) DoKeyCtrlR()      {}
 func (n Nothing) DoKeySpace()      {}
 func (n Nothing) DoEnter()         {}
-func (n Nothing) DoChar(rune)      {}
+func (n Nothing) DoChar(r rune)    {}
