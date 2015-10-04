@@ -54,6 +54,24 @@ func (tl *TodoList) GetArchives(width int) []string {
 	return lines
 }
 
+func (tl *TodoList) GetLabels() []string {
+	for i := 0; i < len(tl.todos); i++ {
+		label := tl.todos[i].label
+		if !(tl.existLabel(label)) {
+			tl.labels = append(tl.labels, label)
+		}
+	}
+
+	for i := 0; i < len(tl.archs); i++ {
+		label := tl.archs[i].label
+		if !(tl.existLabel(label)) {
+			tl.labels = append(tl.labels, label)
+		}
+	}
+
+	return tl.labels
+}
+
 func (tl *TodoList) ChangeTitle(i int, t string, state Type) {
 	if state == TODO {
 		(*tl).todos[i].title = t
@@ -116,6 +134,15 @@ func (tl *TodoList) Exchange(i1 int, i2 int) {
 
 func (t *Todo) setNumber(n int) {
 	(*t).no = n
+}
+
+func (tl *TodoList) existLabel(l string) bool {
+	for i := 0; i < len(tl.labels); i++ {
+		if tl.labels[i] == l {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *Todo) tolimitStr(limit int) string {
