@@ -2,13 +2,13 @@ package yalzo
 
 import (
 	"bufio"
-	"os"
+	"io"
 	"strconv"
 	"strings"
 )
 
-func ReadCSV(fp *os.File) ([]Todo, []Todo, error) {
-	scanner := bufio.NewScanner(fp)
+func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
+	scanner := bufio.NewScanner(r)
 	if err := scanner.Err(); err != nil {
 		return nil, nil, err
 	}
