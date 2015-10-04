@@ -227,6 +227,7 @@ func (v *view) Draw() {
 
 	// input
 	py = PrintLine(py, v.Input.GetInputString())
+	termbox.SetCursor(v.Input.prefixWidth+v.Input.cursorVOffset, 0)
 
 	// tab
 	pX := 0
