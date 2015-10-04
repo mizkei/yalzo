@@ -104,7 +104,7 @@ func (tl *TodoList) Delete(n int) {
 
 func (tl *TodoList) AddTodo(t string) {
 	tl.todos = append(tl.todos, Todo{
-		no:    len(tl.todos),
+		no:    len(tl.todos) + 1,
 		label: "",
 		title: t,
 	})
