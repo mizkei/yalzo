@@ -9,6 +9,7 @@ type TodoList struct {
 	todos  []Todo
 	archs  []Todo
 	labels []string
+	reader io.Reader
 }
 
 type Todo struct {
@@ -45,6 +46,7 @@ func NewTodoList(r io.Reader, ls []string) *TodoList {
 		todos:  l,
 		archs:  as,
 		labels: ls,
+		reader: r,
 	}
 }
 
@@ -161,7 +163,7 @@ func (tl *TodoList) getListInTab(tab Tab) []Todo {
 }
 
 func (t *Todo) tolimitStr(limit int) string {
-	str := strconv.Itoa(t.no) + t.label + t.title
+	str := strconv.Itoa(t.no) + " [ " + t.label + " ] " + t.title
 	length := len(str)
 	if length > limit {
 		return str[:limit]
