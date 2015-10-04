@@ -2,7 +2,12 @@ package yalzo
 
 import (
 	"fmt"
+	"github.com/mattn/go-runewidth"
 	"io"
+)
+
+const (
+	LABEL_TEXT_WIDTH = 16
 )
 
 type TodoList struct {
@@ -106,12 +111,14 @@ func (tl *TodoList) Delete(n int) {
 	tl.todos = append(tl.todos[:n], tl.todos[n+1:]...)
 }
 
-func (tl *TodoList) AddTodo(t string) {
+func (tl *TodoList) AddTodo(t string) int {
+	no := len(tl.todos) + 1
 	tl.todos = append(tl.todos, Todo{
-		no:    len(tl.todos) + 1,
+		no:    no,
 		label: "",
 		title: t,
 	})
+	return no
 }
 
 func (tl *TodoList) MoveArchive(n int) {
@@ -174,12 +181,30 @@ func (tl *TodoList) getListInTab(tab Tab) []Todo {
 
 func (t *Todo) tolimitStr(limit int) string {
 	num_s := fmt.Sprintf("%3d", t.no)
-	label_s := fmt.Sprintf("%20s", t.label)
-	str := num_s + " [ " + label_s + " ] " + t.title
-	length := len(str)
-	if length > limit {
-		return str[:limit]
+	label_s := t.label
+	label_len := runewidth.StringWidth(label_s)
+	if label_len > LABEL_TEXT_WIDTH {
+		label_s = runewidth.Truncate(label_s, LABEL_TEXT_WIDTH, "")
 	} else {
+		for label_len < LABEL_TEXT_WIDTH {
+			label_len = label_len + 2
+			label_s = " " + label_s + " "
+		}
+		if runewidth.StringWidth(label_s) == LABEL_TEXT_WIDTH+1 {
+			label_s = runewidth.Truncate(label_s, LABEL_TEXT_WIDTH, "")
+		}
+	}
+
+	str := num_s + " [ " + label_s + " ] " + t.title
+	length := runewidth.StringWidth(str)
+	if length > limit {
+		return runewidth.Truncate(str, limit, "")
+	} else {
+		str_len := runewidth.StringWidth(str)
+		for str_len < limit {
+			str_len++
+			str = str + " "
+		}
 		return str
 	}
 }
