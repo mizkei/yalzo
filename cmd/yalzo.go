@@ -18,6 +18,7 @@ const (
 
 func loopDraw(fp *os.File, conf yalzo.Config) {
 	dr := yalzo.NewDraw(fp, conf.Labels)
+	defer dr.SaveTodo()
 
 	for {
 		dr.Drawer.Draw()

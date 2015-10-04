@@ -335,6 +335,10 @@ func (d *Draw) DoEnter() {
 	}
 }
 
+func (d *Draw) SaveTodo() {
+	d.view.TodoList.Save()
+}
+
 func NewDraw(fp *os.File, labels []string) *Draw {
 	w, h := termbox.Size()
 
