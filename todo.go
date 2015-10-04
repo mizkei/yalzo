@@ -1,9 +1,10 @@
 package yalzo
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/mattn/go-runewidth"
-	"io"
+	"os"
 )
 
 const (
@@ -14,7 +15,7 @@ type TodoList struct {
 	todos  []Todo
 	archs  []Todo
 	labels []string
-	reader io.Reader
+	reader *os.File
 }
 
 type Todo struct {
@@ -41,8 +42,8 @@ func (t Tab) String() string {
 	return "Unknown"
 }
 
-func NewTodoList(r io.Reader, ls []string) *TodoList {
-	l, as, err := ReadCSV(r)
+func NewTodoList(fp *os.File, ls []string) *TodoList {
+	l, as, err := ReadCSV(fp)
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +52,7 @@ func NewTodoList(r io.Reader, ls []string) *TodoList {
 		todos:  l,
 		archs:  as,
 		labels: ls,
-		reader: r,
+		reader: fp,
 	}
 }
 
@@ -186,10 +187,13 @@ func (t *Todo) tolimitStr(limit int) string {
 	if label_len > LABEL_TEXT_WIDTH {
 		label_s = runewidth.Truncate(label_s, LABEL_TEXT_WIDTH, "")
 	} else {
-		for label_len < LABEL_TEXT_WIDTH {
-			label_len = label_len + 2
-			label_s = " " + label_s + " "
-		}
+		padding := repeatSpace((LABEL_TEXT_WIDTH - label_len) / 2)
+		buf := bytes.NewBuffer(padding)
+		buf.Write([]byte(label_s))
+		buf.Write(padding)
+		label_s = buf.String()
+
+		// if label string lenght is odd and more than LABEL_TEXT_WIDTH
 		if runewidth.StringWidth(label_s) == LABEL_TEXT_WIDTH+1 {
 			label_s = runewidth.Truncate(label_s, LABEL_TEXT_WIDTH, "")
 		}
@@ -201,10 +205,20 @@ func (t *Todo) tolimitStr(limit int) string {
 		return runewidth.Truncate(str, limit, "")
 	} else {
 		str_len := runewidth.StringWidth(str)
+		buf := bytes.NewBufferString(str)
 		for str_len < limit {
 			str_len++
-			str = str + " "
+			buf.Write([]byte(" "))
 		}
-		return str
+		return buf.String()
 	}
+}
+
+func repeatSpace(cnt int) []byte {
+	buf := bytes.NewBuffer(make([]byte, 0, cnt))
+	for cnt-1 >= 0 {
+		buf.Write([]byte(" "))
+		cnt--
+	}
+	return buf.Bytes()
 }
