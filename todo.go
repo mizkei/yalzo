@@ -15,7 +15,7 @@ type TodoList struct {
 	todos  []Todo
 	archs  []Todo
 	labels []string
-	reader *os.File
+	file   *os.File
 }
 
 type Todo struct {
@@ -52,7 +52,7 @@ func NewTodoList(fp *os.File, ls []string) *TodoList {
 		todos:  l,
 		archs:  as,
 		labels: ls,
-		reader: fp,
+		file:   fp,
 	}
 }
 
@@ -60,7 +60,7 @@ func (tl *TodoList) GetList(width int, tab Tab) []string {
 	lines := make([]string, 0, 100)
 	lists := tl.getListInTab(tab)
 	for i := 0; i < len(lists); i++ {
-		lines = append(lines, lists[i].tolimitStr(width))
+		lines = append(lines, lists[i].createTodoText(width))
 	}
 	return lines
 }
@@ -84,7 +84,7 @@ func (tl *TodoList) GetLabels() []string {
 }
 
 func (tl *TodoList) Save() {
-	SaveCSV(tl.todos, tl.archs, tl.reader)
+	SaveCSV(tl.todos, tl.archs, tl.file)
 }
 
 func (tl *TodoList) ChangeTitle(i int, t string, tab Tab) {
@@ -180,7 +180,7 @@ func (tl *TodoList) getListInTab(tab Tab) []Todo {
 	return []Todo{}
 }
 
-func (t *Todo) tolimitStr(limit int) string {
+func (t *Todo) createTodoText(limit int) string {
 	num_s := fmt.Sprintf("%3d", t.no)
 	label_s := t.label
 	label_len := runewidth.StringWidth(label_s)
