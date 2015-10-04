@@ -218,10 +218,10 @@ func (n *NormalDraw) DoKeyCtrlA() {
 	n.view.Cursor = 0
 	n.view.Selected = []int{}
 	if len(n.view.Selected) == 0 {
-		n.view.TodoList.MoveTodo(n.view.Cursor)
+		n.view.TodoList.MoveTodo(n.view.Cursor, n.view.Tab)
 	} else {
 		for _, i := range n.view.Selected {
-			n.view.TodoList.MoveTodo(i)
+			n.view.TodoList.MoveTodo(i, n.view.Tab)
 		}
 	}
 	n.view.List = n.view.TodoList.GetList(n.view.Width, n.view.Tab)

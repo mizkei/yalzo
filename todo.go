@@ -122,26 +122,25 @@ func (tl *TodoList) AddTodo(t string) int {
 	return no
 }
 
-func (tl *TodoList) MoveArchive(n int) {
-	length := len(tl.todos)
-	tl.todos[n].isArchived = true
-	tl.todos[n].setNumber(length)
-	tl.archs = append(tl.archs, tl.todos[n])
-	for i := n + 1; i < len(tl.todos); i++ {
-		tl.todos[i].setNumber(i - 1)
-	}
-	tl.todos = append(tl.todos[:n], tl.todos[n+1:]...)
-}
+func (tl *TodoList) MoveTodo(n int, t Tab) {
+	from, to := tl.todos, tl.archs
+	isArched := true
 
-func (tl *TodoList) MoveTodo(n int) {
-	length := len(tl.todos)
-	tl.archs[n].isArchived = false
-	tl.archs[n].setNumber(length)
-	tl.todos = append(tl.todos, tl.archs[n])
-	for i := n + 1; i < length; i++ {
-		tl.todos[i].setNumber(i - 1)
+	switch t {
+	case TODO:
+	case ARCHIVE:
+		from, to = to, from
+		isArched = !isArched
 	}
-	tl.archs = append(tl.archs[:n], tl.archs[n+1:]...)
+
+	length := len(to)
+	from[n].isArchived = false
+	from[n].setNumber(length)
+	to = append(to, from[n])
+	for i := n + 1; i < length; i++ {
+		from[i].setNumber(i - 1)
+	}
+	from = append(from[:n], from[n+1:]...)
 }
 
 func (tl *TodoList) Exchange(i1 int, i2 int, tab Tab) {
