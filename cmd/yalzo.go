@@ -94,7 +94,7 @@ func main() {
 	conf := yalzo.LoadConf(cf)
 
 	// open data file
-	df, err := os.Open(path.Join(yalzoPath, DATA_FILE_NAME))
+	df, err := os.OpenFile(path.Join(yalzoPath, DATA_FILE_NAME), os.O_RDWR, 0666)
 	if err != nil {
 		panic(err)
 	}
