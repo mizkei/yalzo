@@ -1,6 +1,7 @@
 package yalzo
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 )
@@ -163,7 +164,9 @@ func (tl *TodoList) getListInTab(tab Tab) []Todo {
 }
 
 func (t *Todo) tolimitStr(limit int) string {
-	str := strconv.Itoa(t.no) + " [ " + t.label + " ] " + t.title
+	num_s := fmt.Sprintf("%3d", t.no)
+	label_s := fmt.Sprintf("%20s", t.label)
+	str := num_s + " [ " + label_s + " ] " + t.title
 	length := len(str)
 	if length > limit {
 		return str[:limit]
