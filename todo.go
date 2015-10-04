@@ -54,8 +54,20 @@ func (tl *TodoList) GetArchives(width int) []string {
 	return lines
 }
 
-func (tl *TodoList) ChangeLabelName(i int, l string) {
-	(*tl).todos[i].label = l
+func (tl *TodoList) ChangeTitle(i int, t string, state Type) {
+	if state == TODO {
+		(*tl).todos[i].title = t
+	} else {
+		(*tl).archs[i].title = t
+	}
+}
+
+func (tl *TodoList) ChangeLabelName(i int, l string, state Type) {
+	if state == TODO {
+		(*tl).todos[i].label = l
+	} else {
+		(*tl).archs[i].label = l
+	}
 }
 
 func (tl *TodoList) Delete(n int) {
