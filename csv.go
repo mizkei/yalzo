@@ -37,11 +37,16 @@ func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
 			title:      strings.TrimSpace(items[2]),
 			isArchived: arch,
 		}
+
 		if arch {
-			todos = append(todos, (*todo))
-		} else {
 			archs = append(archs, (*todo))
+		} else {
+			todos = append(todos, (*todo))
 		}
 	}
 	return todos, archs, nil
+}
+
+func SaveCSV(todos []Todo, archs []Todo, r io.Reader) {
+
 }

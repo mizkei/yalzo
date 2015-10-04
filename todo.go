@@ -1,6 +1,7 @@
 package yalzo
 
 import (
+	"fmt"
 	"io"
 	"strconv"
 )
@@ -9,6 +10,7 @@ type TodoList struct {
 	todos  []Todo
 	archs  []Todo
 	labels []string
+	reader io.Reader
 }
 
 type Todo struct {
@@ -45,6 +47,7 @@ func NewTodoList(r io.Reader, ls []string) *TodoList {
 		todos:  l,
 		archs:  as,
 		labels: ls,
+		reader: r,
 	}
 }
 
@@ -75,6 +78,10 @@ func (tl *TodoList) GetLabels() []string {
 	return tl.labels
 }
 
+func (tl *TodoList) Save() {
+	SaveCSV(tl.todos, tl.archs, tl.reader)
+}
+
 func (tl *TodoList) ChangeTitle(i int, t string, tab Tab) {
 	switch tab {
 	case TODO:
@@ -102,7 +109,7 @@ func (tl *TodoList) Delete(n int) {
 
 func (tl *TodoList) AddTodo(t string) {
 	tl.todos = append(tl.todos, Todo{
-		no:    len(tl.todos),
+		no:    len(tl.todos) + 1,
 		label: "",
 		title: t,
 	})
@@ -130,11 +137,17 @@ func (tl *TodoList) MoveTodo(n int) {
 	tl.archs = append(tl.archs[:n], tl.archs[n+1:]...)
 }
 
-func (tl *TodoList) Exchange(i1 int, i2 int) {
-	(*tl).todos[i2].setNumber(i1 + 1)
-	(*tl).todos[i1].setNumber(i2 + 1)
-
-	(*tl).todos[i2], (*tl).todos[i1] = (*tl).todos[i1], (*tl).todos[i2]
+func (tl *TodoList) Exchange(i1 int, i2 int, tab Tab) {
+	switch tab {
+	case TODO:
+		tl.todos[i2].setNumber(i1 + 1)
+		tl.todos[i1].setNumber(i2 + 1)
+		tl.todos[i2], tl.todos[i1] = tl.todos[i1], tl.todos[i2]
+	case ARCHIVE:
+		tl.archs[i2].setNumber(i1 + 1)
+		tl.archs[i1].setNumber(i2 + 1)
+		tl.archs[i2], tl.archs[i1] = tl.archs[i1], tl.archs[i2]
+	}
 }
 
 func (t *Todo) setNumber(n int) {
@@ -161,7 +174,9 @@ func (tl *TodoList) getListInTab(tab Tab) []Todo {
 }
 
 func (t *Todo) tolimitStr(limit int) string {
-	str := strconv.Itoa(t.no) + t.label + t.title
+	num_s := fmt.Sprintf("%3d", t.no)
+	label_s := fmt.Sprintf("%20s", t.label)
+	str := num_s + " [ " + label_s + " ] " + t.title
 	length := len(str)
 	if length > limit {
 		return str[:limit]
