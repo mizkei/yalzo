@@ -25,6 +25,16 @@ const (
 	ARCHIVE
 )
 
+func (t Tab) String() string {
+	switch t {
+	case TODO:
+		return "Todo"
+	case ARCHIVE:
+		return "Archive"
+	}
+	return "Unknown"
+}
+
 func NewTodoList(fp *os.File, ls []string) *TodoList {
 	l, as, err := ReadCSV(fp)
 	if err != nil {
@@ -50,29 +60,19 @@ func (tl *TodoList) GetList(width int, tab Tab) []string {
 func (tl *TodoList) GetLabels() []string {
 	for i := 0; i < len(tl.todos); i++ {
 		label := tl.todos[i].label
-		if !(tl.existLabel(label)) {
+		if !tl.existLabel(label) && label != "" {
 			tl.labels = append(tl.labels, label)
 		}
 	}
 
 	for i := 0; i < len(tl.archs); i++ {
 		label := tl.archs[i].label
-		if !(tl.existLabel(label)) {
+		if !tl.existLabel(label) && label != "" {
 			tl.labels = append(tl.labels, label)
 		}
 	}
 
 	return tl.labels
-}
-
-func (tl *TodoList) GetTabName(tab Tab) string {
-	switch tab {
-	case TODO:
-		return "Todo"
-	case ARCHIVE:
-		return "Archive"
-	}
-	return "Unknown"
 }
 
 func (tl *TodoList) ChangeTitle(i int, t string, tab Tab) {
@@ -100,10 +100,10 @@ func (tl *TodoList) Delete(n int) {
 	tl.todos = append(tl.todos[:n], tl.todos[n+1:]...)
 }
 
-func (tl *TodoList) AddTodo(l string, t string) {
+func (tl *TodoList) AddTodo(t string) {
 	tl.todos = append(tl.todos, Todo{
 		no:    len(tl.todos),
-		label: l,
+		label: "",
 		title: t,
 	})
 }
