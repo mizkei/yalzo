@@ -3,7 +3,6 @@ package yalzo
 import (
 	"fmt"
 	"io"
-	"strconv"
 )
 
 type TodoList struct {
