@@ -46,3 +46,7 @@ func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
 	}
 	return todos, archs, nil
 }
+
+func SaveCSV(todos []Todo, archs []Todo, r io.Reader) {
+
+}

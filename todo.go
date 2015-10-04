@@ -78,6 +78,10 @@ func (tl *TodoList) GetLabels() []string {
 	return tl.labels
 }
 
+func (tl *TodoList) Save() {
+	SaveCSV(tl.todos, tl.archs, tl.reader)
+}
+
 func (tl *TodoList) ChangeTitle(i int, t string, tab Tab) {
 	switch tab {
 	case TODO:
@@ -133,11 +137,17 @@ func (tl *TodoList) MoveTodo(n int) {
 	tl.archs = append(tl.archs[:n], tl.archs[n+1:]...)
 }
 
-func (tl *TodoList) Exchange(i1 int, i2 int) {
-	(*tl).todos[i2].setNumber(i1 + 1)
-	(*tl).todos[i1].setNumber(i2 + 1)
-
-	(*tl).todos[i2], (*tl).todos[i1] = (*tl).todos[i1], (*tl).todos[i2]
+func (tl *TodoList) Exchange(i1 int, i2 int, tab Tab) {
+	switch tab {
+	case TODO:
+		tl.todos[i2].setNumber(i1 + 1)
+		tl.todos[i1].setNumber(i2 + 1)
+		tl.todos[i2], tl.todos[i1] = tl.todos[i1], tl.todos[i2]
+	case ARCHIVE:
+		tl.archs[i2].setNumber(i1 + 1)
+		tl.archs[i1].setNumber(i2 + 1)
+		tl.archs[i2], tl.archs[i1] = tl.archs[i1], tl.archs[i2]
+	}
 }
 
 func (t *Todo) setNumber(n int) {
