@@ -98,6 +98,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer df.Close()
 
 	loopDraw(df, conf)
 }
