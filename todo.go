@@ -15,7 +15,7 @@ type TodoList struct {
 	todos  []Todo
 	archs  []Todo
 	labels []string
-	reader *os.File
+	file   *os.File
 }
 
 type Todo struct {
@@ -84,7 +84,7 @@ func (tl *TodoList) GetLabels() []string {
 }
 
 func (tl *TodoList) Save() {
-	SaveCSV(tl.todos, tl.archs, tl.reader)
+	SaveCSV(append(tl.todos, tl.archs...), tl.file)
 }
 
 func (tl *TodoList) ChangeTitle(i int, t string, tab Tab) {
