@@ -2,14 +2,14 @@ package yalzo
 
 import (
 	"bufio"
-	"bytes"
-	"os"
+	"fmt"
+	"io"
 	"strconv"
 	"strings"
 )
 
-func ReadCSV(fp *os.File) ([]Todo, []Todo, error) {
-	scanner := bufio.NewScanner(fp)
+func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
+	scanner := bufio.NewScanner(r)
 	if err := scanner.Err(); err != nil {
 		return nil, nil, err
 	}
@@ -48,35 +48,22 @@ func ReadCSV(fp *os.File) ([]Todo, []Todo, error) {
 	return todos, archs, nil
 }
 
-func SaveCSV(todos []Todo, archs []Todo, fp *os.File) {
-	w := bufio.NewWriter(fp)
-	csv_list := append(createTodoCSV(todos), createTodoCSV(archs)...)
-	buf := bytes.NewBufferString("")
-	for i := 0; i < len(csv_list); i++ {
-		buf.WriteString(csv_list[i])
-		// if not last offset, append return '\n' to tail.
-		if i+1 != len(csv_list[i]) {
-			buf.WriteString("\n")
-		}
-	}
-}
+func SaveCSV(todos []Todo, w io.Writer) {
+	size := len(todos)
+	for i := 0; i < size; i++ {
+		no := strconv.Itoa(todos[i].no)
+		l := todos[i].label
+		t := todos[i].title
 
-func createTodoCSV(todos []Todo) []string {
-	csv := make([]string, 0, len(todos))
-	for i := 0; i < len(todos); i++ {
-		todo := todos[i]
-		buf := bytes.NewBufferString(strconv.Itoa(todo.no))
-		buf.WriteString(",")
-		buf.WriteString(todo.label)
-		buf.WriteString(",")
-		buf.WriteString(todo.title)
-		buf.WriteString(",")
-		if todo.isArchived {
-			buf.WriteString("true")
+		if todos[i].isArchived {
+			fmt.Fprintf(w, "%s,%s,%s,%s", no, l, t, "true")
 		} else {
-			buf.WriteString("false")
+			fmt.Fprintf(w, "%s,%s,%s,%s", no, l, t, "false")
 		}
-		csv[i] = buf.String()
+
+		// if not last offset, append return '\n' to tail.
+		if i+1 != size {
+			fmt.Fprintf(w, "\n")
+		}
 	}
-	return csv
 }
