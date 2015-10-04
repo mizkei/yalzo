@@ -47,6 +47,7 @@ func NewTodoList(fp *os.File, ls []string) *TodoList {
 	if err != nil {
 		panic(err)
 	}
+	fp.Seek(0, 0)
 
 	return &TodoList{
 		todos:  l,
@@ -123,24 +124,23 @@ func (tl *TodoList) AddTodo(t string) int {
 }
 
 func (tl *TodoList) MoveTodo(n int, t Tab) {
-	from, to := tl.todos, tl.archs
+	from, to := &tl.todos, &tl.archs
 	isArched := true
 
 	switch t {
-	case TODO:
 	case ARCHIVE:
 		from, to = to, from
 		isArched = !isArched
 	}
 
-	length := len(to)
-	from[n].isArchived = false
-	from[n].setNumber(length)
-	to = append(to, from[n])
-	for i := n + 1; i < length; i++ {
-		from[i].setNumber(i - 1)
+	length := len(*to)
+	(*from)[n].isArchived = isArched
+	(*from)[n].setNumber(length)
+	*to = append(*to, (*from)[n])
+	for i := n + 1; i < len(*from); i++ {
+		(*from)[i].setNumber(i - 1)
 	}
-	from = append(from[:n], from[n+1:]...)
+	*from = append((*from)[:n], (*from)[n+1:]...)
 }
 
 func (tl *TodoList) Exchange(i1 int, i2 int, tab Tab) {

@@ -36,6 +36,14 @@ func containsVal(ary []int, val int) (int, bool) {
 	return 0, false
 }
 
+func shiftIndex(ary *[]int, val int) {
+	for i, v := range *ary {
+		if v > val {
+			(*ary)[i] -= 1
+		}
+	}
+}
+
 type Drawer interface {
 	Operator
 	Draw()
@@ -208,6 +216,7 @@ func (n *NormalDraw) DoKeyTab() {
 func (n *NormalDraw) DoKeyCtrlD() {
 	for _, i := range n.view.Selected {
 		n.view.TodoList.Delete(i)
+		shiftIndex(&n.view.Selected, i)
 	}
 	n.view.Cursor = 0
 	n.view.Selected = []int{}
@@ -215,15 +224,16 @@ func (n *NormalDraw) DoKeyCtrlD() {
 }
 
 func (n *NormalDraw) DoKeyCtrlA() {
-	n.view.Cursor = 0
-	n.view.Selected = []int{}
 	if len(n.view.Selected) == 0 {
 		n.view.TodoList.MoveTodo(n.view.Cursor, n.view.Tab)
 	} else {
 		for _, i := range n.view.Selected {
 			n.view.TodoList.MoveTodo(i, n.view.Tab)
+			shiftIndex(&n.view.Selected, i)
 		}
 	}
+	n.view.Cursor = 0
+	n.view.Selected = []int{}
 	n.view.List = n.view.TodoList.GetList(n.view.Width, n.view.Tab)
 }
 

@@ -45,6 +45,7 @@ func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
 			todos = append(todos, (*todo))
 		}
 	}
+
 	return todos, archs, nil
 }
 
