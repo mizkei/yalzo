@@ -88,9 +88,10 @@ func (i *InputDraw) DoChar(r rune) {
 }
 
 func (i *InputDraw) DoEnter() {
-	i.view.TodoList.AddTodo(string(i.view.Input.input))
+	no := i.view.TodoList.AddTodo(string(i.view.Input.input))
 	i.view.Input.DeleteAll()
 	i.view.List = i.view.TodoList.GetList(i.view.Width, i.view.Tab)
+	i.view.Cursor = no
 }
 
 func (i *InputDraw) Draw() {
@@ -184,11 +185,11 @@ func (l *LabelDraw) Draw() {
 	py += 1
 
 	for i, e := range l.Labels {
-		PrintText(1, py, colorDef, colorDef, "* ")
+		PrintText(1, py, colorDef, colorDef, "*")
 		if i == l.Cursor {
-			PrintText(4, py, colorDef, termbox.ColorCyan, e)
+			PrintText(3, py, colorDef, termbox.ColorCyan, e)
 		} else {
-			PrintText(4, py, colorDef, colorDef, e)
+			PrintText(3, py, colorDef, colorDef, e)
 		}
 		py += 1
 	}
@@ -337,7 +338,14 @@ func (d *Draw) DoKeyCtrlR() {
 
 func (d *Draw) DoEnter() {
 	switch d.view.Mode {
-	case NORMAL:
+	case INPUT:
+		d.Drawer.DoEnter()
+		d.view.Mode = LABEL
+		d.Drawer = &LabelDraw{
+			view:   d.view,
+			Labels: d.view.TodoList.GetLabels(),
+			Cursor: 0,
+		}
 	default:
 		d.Drawer.DoEnter()
 		d.view.Mode = NORMAL
