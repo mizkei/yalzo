@@ -85,6 +85,7 @@ func (tl *TodoList) GetLabels() []string {
 }
 
 func (tl *TodoList) Save() {
+	tl.file.Truncate(0)
 	SaveCSV(append(tl.todos, tl.archs...), tl.file)
 }
 
