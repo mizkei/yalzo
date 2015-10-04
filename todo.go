@@ -38,18 +38,11 @@ func NewTodoList(fp *os.File, ls []string) *TodoList {
 	}
 }
 
-func (tl *TodoList) GetTodos(width int) []string {
+func (tl *TodoList) GetList(width int, tab Tab) []string {
 	lines := make([]string, 0, 100)
-	for i := 0; i < len(tl.todos); i++ {
-		lines = append(lines, tl.todos[i].tolimitStr(width))
-	}
-	return lines
-}
-
-func (tl *TodoList) GetArchives(width int) []string {
-	lines := make([]string, 0, 100)
-	for i := 0; i < len(tl.archs); i++ {
-		lines = append(lines, tl.archs[i].tolimitStr(width))
+	lists := tl.getListInTab(tab)
+	for i := 0; i < len(lists); i++ {
+		lines = append(lines, lists[i].tolimitStr(width))
 	}
 	return lines
 }
@@ -72,18 +65,30 @@ func (tl *TodoList) GetLabels() []string {
 	return tl.labels
 }
 
-func (tl *TodoList) ChangeTitle(i int, t string, state Type) {
-	if state == TODO {
+func (tl *TodoList) GetTabName(tab Tab) string {
+	switch tab {
+	case TODO:
+		return "Todo"
+	case ARCHIVE:
+		return "Archive"
+	}
+	return "Unknown"
+}
+
+func (tl *TodoList) ChangeTitle(i int, t string, tab Tab) {
+	switch tab {
+	case TODO:
 		(*tl).todos[i].title = t
-	} else {
+	case ARCHIVE:
 		(*tl).archs[i].title = t
 	}
 }
 
-func (tl *TodoList) ChangeLabelName(i int, l string, state Type) {
-	if state == TODO {
+func (tl *TodoList) ChangeLabelName(i int, l string, tab Tab) {
+	switch tab {
+	case TODO:
 		(*tl).todos[i].label = l
-	} else {
+	case ARCHIVE:
 		(*tl).archs[i].label = l
 	}
 }
@@ -143,6 +148,16 @@ func (tl *TodoList) existLabel(l string) bool {
 		}
 	}
 	return false
+}
+
+func (tl *TodoList) getListInTab(tab Tab) []Todo {
+	switch tab {
+	case ARCHIVE:
+		return tl.archs
+	case TODO:
+		return tl.todos
+	}
+	return []Todo{}
 }
 
 func (t *Todo) tolimitStr(limit int) string {
