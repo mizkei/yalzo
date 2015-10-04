@@ -1,7 +1,7 @@
 package yalzo
 
 import (
-	"os"
+	"io"
 	"strconv"
 )
 
@@ -35,8 +35,8 @@ func (t Tab) String() string {
 	return "Unknown"
 }
 
-func NewTodoList(fp *os.File, ls []string) *TodoList {
-	l, as, err := ReadCSV(fp)
+func NewTodoList(r io.Reader, ls []string) *TodoList {
+	l, as, err := ReadCSV(r)
 	if err != nil {
 		panic(err)
 	}
