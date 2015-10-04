@@ -2,6 +2,7 @@ package yalzo
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"strconv"
 	"strings"
@@ -47,6 +48,22 @@ func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
 	return todos, archs, nil
 }
 
-func SaveCSV(todos []Todo, archs []Todo, r io.Reader) {
+func SaveCSV(todos []Todo, w io.Writer) {
+	size := len(todos)
+	for i := 0; i < size; i++ {
+		no := strconv.Itoa(todos[i].no)
+		l := todos[i].label
+		t := todos[i].title
 
+		if todos[i].isArchived {
+			fmt.Fprintf(w, "%s,%s,%s,%s", no, l, t, "true")
+		} else {
+			fmt.Fprintf(w, "%s,%s,%s,%s", no, l, t, "false")
+		}
+
+		// if not last offset, append return '\n' to tail.
+		if i+1 != size {
+			fmt.Fprintf(w, "\n")
+		}
+	}
 }
