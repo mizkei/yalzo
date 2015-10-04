@@ -7,36 +7,41 @@ import (
 	"strings"
 )
 
-func ReadCSV(fp *os.File) ([]Todo, error) {
+func ReadCSV(fp *os.File) ([]Todo, []Todo, error) {
 	scanner := bufio.NewScanner(fp)
 	if err := scanner.Err(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	todos := make([]Todo, 0, 100)
+	archs := make([]Todo, 0, 100)
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		items := strings.Split(line, ",")
-        arch := false
+		arch := false
 
 		no, err := strconv.Atoi(strings.TrimSpace(items[0]))
 
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
-        if strings.TrimSpace(items[3]) == "true" {
-            arch = true
-        }
+		if strings.TrimSpace(items[3]) == "true" {
+			arch = true
+		}
 
 		todo := &Todo{
-			no:    no,
-			label: strings.TrimSpace(items[1]),
-			title: strings.TrimSpace(items[2]),
-            isArchived: arch,
+			no:         no,
+			label:      strings.TrimSpace(items[1]),
+			title:      strings.TrimSpace(items[2]),
+			isArchived: arch,
 		}
-		todos = append(todos, (*todo))
+		if arch {
+			todos = append(todos, (*todo))
+		} else {
+			archs = append(archs, (*todo))
+		}
 	}
-	return todos, nil
+	return todos, archs, nil
 }
