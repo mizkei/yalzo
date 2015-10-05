@@ -1,13 +1,15 @@
 package yalzo
 
 import (
+	"os"
+
 	"github.com/mattn/go-runewidth"
 	"github.com/nsf/termbox-go"
-	"os"
 )
 
 const (
 	INPUT_PREFIX = "> "
+	colorDef     = termbox.ColorDefault
 )
 
 func PrintText(x, y int, fg, bg termbox.Attribute, text string) int {
@@ -20,10 +22,17 @@ func PrintText(x, y int, fg, bg termbox.Attribute, text string) int {
 }
 
 func PrintLine(y int, str string) int {
-	colorDef := termbox.ColorDefault
 	PrintText(0, y, colorDef, colorDef, str)
 
 	return y + 1
+}
+
+func FillText(n, y int, fg, bg termbox.Attribute, c rune) {
+	x := 0
+	for i := 0; i < n; i += 1 {
+		termbox.SetCell(x, y, c, fg, bg)
+		x += runewidth.RuneWidth(c)
+	}
 }
 
 func containsVal(ary []int, val int) (int, bool) {
@@ -52,7 +61,8 @@ type Drawer interface {
 // input
 type InputDraw struct {
 	Nothing
-	view *view
+	view   *view
+	action Mode
 }
 
 func (i *InputDraw) DoKeyArrowLeft() {
@@ -88,14 +98,28 @@ func (i *InputDraw) DoChar(r rune) {
 }
 
 func (i *InputDraw) DoEnter() {
-	no := i.view.TodoList.AddTodo(string(i.view.Input.input))
+	switch i.action {
+	case NORMAL:
+		no := i.view.TodoList.AddTodo(string(i.view.Input.input))
+		i.view.Cursor = no
+	case RENAME:
+		i.view.TodoList.ChangeTitle(i.view.Cursor, string(i.view.Input.input), i.view.Tab)
+	}
 	i.view.Input.DeleteAll()
 	i.view.List = i.view.TodoList.GetList(i.view.Width, i.view.Tab)
-	i.view.Cursor = no
 }
 
 func (i *InputDraw) Draw() {
-	(&NormalDraw{view: i.view}).Draw()
+	switch i.action {
+	case NORMAL:
+		(&NormalDraw{view: i.view}).Draw()
+	case RENAME:
+		PrintLine(1, "(old) > "+i.view.List[i.view.Cursor])
+	}
+
+	FillText(i.view.Width, 0, colorDef, colorDef, ' ')
+	PrintLine(0, i.view.Input.GetInputString())
+	termbox.SetCursor(i.view.Input.prefixWidth+i.view.Input.cursorVOffset, 0)
 }
 
 //change
@@ -118,14 +142,10 @@ func (c *ChangeDraw) DoChar(r rune) {
 }
 
 func (c *ChangeDraw) Draw() {
-	colorDef := termbox.ColorDefault
-	termbox.Clear(colorDef, colorDef)
-
 	py := 0
 
 	// input
-	py = PrintLine(py, c.view.Input.GetInputString())
-	termbox.SetCursor(c.view.Input.prefixWidth+c.view.Input.cursorVOffset, 0)
+	py = PrintLine(py, " @ Change mode")
 
 	// tab
 	pX := 0
@@ -149,8 +169,6 @@ func (c *ChangeDraw) Draw() {
 		}
 		py += 1
 	}
-
-	termbox.Flush()
 }
 
 // label
@@ -175,10 +193,6 @@ func (l *LabelDraw) DoChar(r rune) {
 }
 
 func (l *LabelDraw) Draw() {
-	colorDef := termbox.ColorDefault
-	termbox.Clear(colorDef, colorDef)
-	termbox.SetCursor(-1, -1)
-
 	py := 0
 
 	PrintLine(py, l.view.List[l.view.Cursor])
@@ -193,8 +207,6 @@ func (l *LabelDraw) Draw() {
 		}
 		py += 1
 	}
-
-	termbox.Flush()
 }
 
 // normal
@@ -255,14 +267,10 @@ func (n *NormalDraw) DoChar(r rune) {
 }
 
 func (n *NormalDraw) Draw() {
-	colorDef := termbox.ColorDefault
-	termbox.Clear(colorDef, colorDef)
-
 	py := 0
 
 	// input
-	py = PrintLine(py, n.view.Input.GetInputString())
-	termbox.SetCursor(n.view.Input.prefixWidth+n.view.Input.cursorVOffset, 0)
+	py = PrintLine(py, " === TODO Manager ===")
 
 	// tab
 	pX := 0
@@ -286,8 +294,6 @@ func (n *NormalDraw) Draw() {
 		}
 		py += 1
 	}
-
-	termbox.Flush()
 }
 
 type Draw struct {
@@ -317,7 +323,10 @@ func (d *Draw) DoKeyCtrlW() {
 	switch d.view.Mode {
 	case NORMAL:
 		d.view.Mode = INPUT
-		d.Drawer = &InputDraw{view: d.view}
+		d.Drawer = &InputDraw{
+			view:   d.view,
+			action: NORMAL,
+		}
 	}
 }
 
@@ -334,23 +343,50 @@ func (d *Draw) DoKeyCtrlL() {
 }
 
 func (d *Draw) DoKeyCtrlR() {
+	switch d.view.Mode {
+	case NORMAL:
+		d.view.Mode = INPUT
+		d.Drawer = &InputDraw{
+			view:   d.view,
+			action: RENAME,
+		}
+	}
 }
 
 func (d *Draw) DoEnter() {
 	switch d.view.Mode {
 	case INPUT:
 		d.Drawer.DoEnter()
-		d.view.Mode = LABEL
-		d.Drawer = &LabelDraw{
-			view:   d.view,
-			Labels: d.view.TodoList.GetLabels(),
-			Cursor: 0,
+		v, ok := d.Drawer.(*InputDraw)
+		if !ok {
+			break
+		}
+		switch v.action {
+		case NORMAL:
+			d.view.Mode = LABEL
+			d.Drawer = &LabelDraw{
+				view:   d.view,
+				Labels: d.view.TodoList.GetLabels(),
+				Cursor: 0,
+			}
+		case RENAME:
+			d.view.Mode = NORMAL
+			d.Drawer = &NormalDraw{view: d.view}
 		}
 	default:
 		d.Drawer.DoEnter()
 		d.view.Mode = NORMAL
 		d.Drawer = &NormalDraw{view: d.view}
 	}
+}
+
+func (d *Draw) Draw() {
+	termbox.Clear(colorDef, colorDef)
+	termbox.SetCursor(-1, -1)
+
+	d.Drawer.Draw()
+
+	termbox.Flush()
 }
 
 func (d *Draw) SaveTodo() {
