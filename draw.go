@@ -98,14 +98,25 @@ func (i *InputDraw) DoChar(r rune) {
 }
 
 func (i *InputDraw) DoEnter() {
-	no := i.view.TodoList.AddTodo(string(i.view.Input.input))
+	switch i.action {
+	case NORMAL:
+		no := i.view.TodoList.AddTodo(string(i.view.Input.input))
+		i.view.Cursor = no
+	case RENAME:
+		i.view.TodoList.ChangeTitle(i.view.Cursor, string(i.view.Input.input), i.view.Tab)
+	}
 	i.view.Input.DeleteAll()
 	i.view.List = i.view.TodoList.GetList(i.view.Width, i.view.Tab)
-	i.view.Cursor = no
 }
 
 func (i *InputDraw) Draw() {
-	(&NormalDraw{view: i.view}).Draw()
+	switch i.action {
+	case NORMAL:
+		(&NormalDraw{view: i.view}).Draw()
+	case RENAME:
+		PrintLine(1, "(old) > "+i.view.List[i.view.Cursor])
+	}
+
 	FillText(i.view.Width, 0, colorDef, colorDef, ' ')
 	PrintLine(0, i.view.Input.GetInputString())
 	termbox.SetCursor(i.view.Input.prefixWidth+i.view.Input.cursorVOffset, 0)
@@ -312,7 +323,10 @@ func (d *Draw) DoKeyCtrlW() {
 	switch d.view.Mode {
 	case NORMAL:
 		d.view.Mode = INPUT
-		d.Drawer = &InputDraw{view: d.view}
+		d.Drawer = &InputDraw{
+			view:   d.view,
+			action: NORMAL,
+		}
 	}
 }
 
@@ -329,17 +343,35 @@ func (d *Draw) DoKeyCtrlL() {
 }
 
 func (d *Draw) DoKeyCtrlR() {
+	switch d.view.Mode {
+	case NORMAL:
+		d.view.Mode = INPUT
+		d.Drawer = &InputDraw{
+			view:   d.view,
+			action: RENAME,
+		}
+	}
 }
 
 func (d *Draw) DoEnter() {
 	switch d.view.Mode {
 	case INPUT:
 		d.Drawer.DoEnter()
-		d.view.Mode = LABEL
-		d.Drawer = &LabelDraw{
-			view:   d.view,
-			Labels: d.view.TodoList.GetLabels(),
-			Cursor: 0,
+		v, ok := d.Drawer.(*InputDraw)
+		if !ok {
+			break
+		}
+		switch v.action {
+		case NORMAL:
+			d.view.Mode = LABEL
+			d.Drawer = &LabelDraw{
+				view:   d.view,
+				Labels: d.view.TodoList.GetLabels(),
+				Cursor: 0,
+			}
+		case RENAME:
+			d.view.Mode = NORMAL
+			d.Drawer = &NormalDraw{view: d.view}
 		}
 	default:
 		d.Drawer.DoEnter()

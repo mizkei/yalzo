@@ -7,6 +7,7 @@ const (
 	CHANGE
 	INPUT
 	LABEL
+	RENAME
 )
 
 type view struct {
