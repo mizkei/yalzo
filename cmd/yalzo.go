@@ -20,7 +20,7 @@ const (
 
 func loopDraw(path string, conf yalzo.Config) {
 	// open data file
-	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
+	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		panic(err)
 	}
@@ -100,14 +100,17 @@ func main() {
 	}
 
 	yalzoPath := path.Join(home, YALZO_PATH)
-	os.Mkdir(yalzoPath, 0666)
+	os.Mkdir(yalzoPath, 0755)
 
 	// read config
 	cf, err := ioutil.ReadFile(path.Join(yalzoPath, CONFIG_FILE_NAME))
 	if err != nil {
+		cf = []byte("{\"labels\": [\"完了\", \"未完了\"]}")
+	}
+	conf, err := yalzo.LoadConf(cf)
+	if err != nil {
 		panic(err)
 	}
-	conf := yalzo.LoadConf(cf)
 
-	loopDraw(path.Join(yalzoPath, DATA_FILE_NAME), conf)
+	loopDraw(path.Join(yalzoPath, DATA_FILE_NAME), *conf)
 }
