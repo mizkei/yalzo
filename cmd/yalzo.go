@@ -28,7 +28,7 @@ func loopDraw(path string, conf yalzo.Config) {
 	defer dr.SaveTodo()
 
 	for {
-		dr.Drawer.Draw()
+		dr.Draw()
 		switch ev := termbox.PollEvent(); ev.Type {
 		case termbox.EventKey:
 			switch ev.Key {
