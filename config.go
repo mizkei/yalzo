@@ -8,11 +8,11 @@ type Config struct {
 	Labels []string `json:"labels"`
 }
 
-func LoadConf(b []byte) Config {
+func LoadConf(b []byte) (*Config, error) {
 	var conf Config
 	if err := json.Unmarshal(b, &conf); err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return conf
+	return &conf, nil
 }
