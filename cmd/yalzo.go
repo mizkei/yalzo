@@ -14,11 +14,13 @@ const (
 	YALZO_PATH       = ".yalzo"
 	CONFIG_FILE_NAME = "config.json"
 	DATA_FILE_NAME   = "todo.csv"
+	UNIX_HOME        = "HOME"
+	WIN_HOME         = "HOMEPATH"
 )
 
 func loopDraw(path string, conf yalzo.Config) {
 	// open data file
-	fp, err := os.OpenFile(path, os.O_RDWR, 0666)
+	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -84,15 +86,21 @@ func main() {
 	termbox.SetInputMode(termbox.InputEsc)
 
 	// set yalzo path
-	var yalzoPath string
+	var envHOME string
 	switch runtime.GOOS {
-	case "linux":
-		yalzoPath = path.Join(os.Getenv("HOME"), YALZO_PATH)
-	case "dawwin":
-		yalzoPath = path.Join(os.Getenv("HOME"), YALZO_PATH)
+	case "linux", "darwin":
+		envHOME = UNIX_HOME
 	case "windows":
-		yalzoPath = path.Join(os.Getenv("HOMEPATH"), YALZO_PATH)
+		envHOME = WIN_HOME
 	}
+
+	home := os.Getenv(envHOME)
+	if home == "" {
+		panic("ENV " + envHOME + " does not exist")
+	}
+
+	yalzoPath := path.Join(home, YALZO_PATH)
+	os.Mkdir(yalzoPath, 0666)
 
 	// read config
 	cf, err := ioutil.ReadFile(path.Join(yalzoPath, CONFIG_FILE_NAME))
