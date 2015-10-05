@@ -36,6 +36,14 @@ func containsVal(ary []int, val int) (int, bool) {
 	return 0, false
 }
 
+func shiftIndex(ary *[]int, val int) {
+	for i, v := range *ary {
+		if v > val {
+			(*ary)[i] -= 1
+		}
+	}
+}
+
 type Drawer interface {
 	Operator
 	Draw()
@@ -80,9 +88,10 @@ func (i *InputDraw) DoChar(r rune) {
 }
 
 func (i *InputDraw) DoEnter() {
-	i.view.TodoList.AddTodo(string(i.view.Input.input))
+	no := i.view.TodoList.AddTodo(string(i.view.Input.input))
 	i.view.Input.DeleteAll()
 	i.view.List = i.view.TodoList.GetList(i.view.Width, i.view.Tab)
+	i.view.Cursor = no
 }
 
 func (i *InputDraw) Draw() {
@@ -176,11 +185,11 @@ func (l *LabelDraw) Draw() {
 	py += 1
 
 	for i, e := range l.Labels {
-		PrintText(1, py, colorDef, colorDef, "* ")
+		PrintText(1, py, colorDef, colorDef, "*")
 		if i == l.Cursor {
-			PrintText(4, py, colorDef, termbox.ColorCyan, e)
+			PrintText(3, py, colorDef, termbox.ColorCyan, e)
 		} else {
-			PrintText(4, py, colorDef, colorDef, e)
+			PrintText(3, py, colorDef, colorDef, e)
 		}
 		py += 1
 	}
@@ -208,18 +217,24 @@ func (n *NormalDraw) DoKeyTab() {
 func (n *NormalDraw) DoKeyCtrlD() {
 	for _, i := range n.view.Selected {
 		n.view.TodoList.Delete(i)
+		shiftIndex(&n.view.Selected, i)
 	}
+	n.view.Cursor = 0
+	n.view.Selected = []int{}
 	n.view.List = n.view.TodoList.GetList(n.view.Width, n.view.Tab)
 }
 
 func (n *NormalDraw) DoKeyCtrlA() {
 	if len(n.view.Selected) == 0 {
-		n.view.TodoList.MoveTodo(n.view.Cursor)
+		n.view.TodoList.MoveTodo(n.view.Cursor, n.view.Tab)
 	} else {
 		for _, i := range n.view.Selected {
-			n.view.TodoList.MoveTodo(i)
+			n.view.TodoList.MoveTodo(i, n.view.Tab)
+			shiftIndex(&n.view.Selected, i)
 		}
 	}
+	n.view.Cursor = 0
+	n.view.Selected = []int{}
 	n.view.List = n.view.TodoList.GetList(n.view.Width, n.view.Tab)
 }
 
@@ -323,12 +338,23 @@ func (d *Draw) DoKeyCtrlR() {
 
 func (d *Draw) DoEnter() {
 	switch d.view.Mode {
-	case NORMAL:
+	case INPUT:
+		d.Drawer.DoEnter()
+		d.view.Mode = LABEL
+		d.Drawer = &LabelDraw{
+			view:   d.view,
+			Labels: d.view.TodoList.GetLabels(),
+			Cursor: 0,
+		}
 	default:
 		d.Drawer.DoEnter()
 		d.view.Mode = NORMAL
 		d.Drawer = &NormalDraw{view: d.view}
 	}
+}
+
+func (d *Draw) SaveTodo() {
+	d.view.TodoList.Save()
 }
 
 func NewDraw(fp *os.File, labels []string) *Draw {

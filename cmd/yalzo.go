@@ -16,8 +16,16 @@ const (
 	DATA_FILE_NAME   = "todo.csv"
 )
 
-func loopDraw(fp *os.File, conf yalzo.Config) {
+func loopDraw(path string, conf yalzo.Config) {
+	// open data file
+	fp, err := os.OpenFile(path, os.O_RDWR, 0666)
+	if err != nil {
+		panic(err)
+	}
+	defer fp.Close()
+
 	dr := yalzo.NewDraw(fp, conf.Labels)
+	defer dr.SaveTodo()
 
 	for {
 		dr.Drawer.Draw()
@@ -93,11 +101,5 @@ func main() {
 	}
 	conf := yalzo.LoadConf(cf)
 
-	// open data file
-	df, err := os.OpenFile(path.Join(yalzoPath, DATA_FILE_NAME), os.O_RDWR, 0666)
-	if err != nil {
-		panic(err)
-	}
-
-	loopDraw(df, conf)
+	loopDraw(path.Join(yalzoPath, DATA_FILE_NAME), conf)
 }
