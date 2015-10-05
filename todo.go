@@ -136,10 +136,10 @@ func (tl *TodoList) MoveTodo(n int, t Tab) {
 
 	length := len(*to)
 	(*from)[n].isArchived = isArched
-	(*from)[n].setNumber(length)
+	(*from)[n].setNumber(length + 1)
 	*to = append(*to, (*from)[n])
 	for i := n + 1; i < len(*from); i++ {
-		(*from)[i].setNumber(i - 1)
+		(*from)[i].setNumber(i)
 	}
 	*from = append((*from)[:n], (*from)[n+1:]...)
 }
