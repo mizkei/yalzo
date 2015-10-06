@@ -121,6 +121,8 @@ func (i *InputDraw) DoEnter() {
 		i.view.Cursor = no
 	case RENAME:
 		i.view.TodoList.ChangeTitle(i.view.Cursor, string(i.view.Input.input), i.view.Tab)
+	case LABEL:
+		i.view.TodoList.AddLabel(string(i.view.Input.input))
 	}
 	i.view.Input.DeleteAll()
 	i.view.List = i.view.TodoList.GetList(i.view.Width, i.view.Tab)
@@ -132,6 +134,8 @@ func (i *InputDraw) Draw() {
 		(&NormalDraw{view: i.view}).Draw()
 	case RENAME:
 		PrintLine(1, "(old) > "+i.view.List[i.view.Cursor])
+	case LABEL:
+		(&LabelDraw{view: i.view, Labels: i.view.TodoList.GetLabels(), Cursor: -1}).Draw()
 	}
 
 	FillText(i.view.Width, 0, colorDef, colorDef, ' ')
@@ -355,6 +359,17 @@ func (d *Draw) DoKeyCtrlL() {
 	}
 }
 
+func (d *Draw) DoKeyCtrlV() {
+	switch d.view.Mode {
+	case NORMAL:
+		d.view.Mode = INPUT
+		d.Drawer = &InputDraw{
+			view:   d.view,
+			action: LABEL,
+		}
+	}
+}
+
 func (d *Draw) DoKeyCtrlR() {
 	switch d.view.Mode {
 	case NORMAL:
@@ -382,7 +397,7 @@ func (d *Draw) DoEnter() {
 				Labels: d.view.TodoList.GetLabels(),
 				Cursor: 0,
 			}
-		case RENAME:
+		case RENAME, LABEL:
 			d.view.Mode = NORMAL
 			d.Drawer = &NormalDraw{view: d.view}
 		}

@@ -83,6 +83,8 @@ func loopDraw(todopath, confpath string) {
 				dr.DoKeyCtrlW()
 			case termbox.KeyCtrlL:
 				dr.DoKeyCtrlL()
+			case termbox.KeyCtrlV:
+				dr.DoKeyCtrlV()
 			case termbox.KeyCtrlD:
 				dr.DoKeyCtrlD()
 			case termbox.KeyCtrlA:

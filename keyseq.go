@@ -12,6 +12,7 @@ type Operator interface {
 	DoKeyCtrlX()
 	DoKeyCtrlW()
 	DoKeyCtrlL()
+	DoKeyCtrlV()
 	DoKeyCtrlD()
 	DoKeyCtrlA()
 	DoKeyCtrlR()
@@ -33,6 +34,7 @@ func (n Nothing) DoKeyTab()        {}
 func (n Nothing) DoKeyCtrlX()      {}
 func (n Nothing) DoKeyCtrlW()      {}
 func (n Nothing) DoKeyCtrlL()      {}
+func (n Nothing) DoKeyCtrlV()      {}
 func (n Nothing) DoKeyCtrlD()      {}
 func (n Nothing) DoKeyCtrlA()      {}
 func (n Nothing) DoKeyCtrlR()      {}
