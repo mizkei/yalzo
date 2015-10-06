@@ -22,3 +22,13 @@ type view struct {
 	ExCheck       int
 	Selected      []int
 }
+
+func (v *view) SetCursor(i int) {
+	if i < 0 {
+		v.Cursor = 0
+	} else if l := len(v.List) - 1; l < i {
+		v.Cursor = l
+	} else {
+		v.Cursor = i
+	}
+}
