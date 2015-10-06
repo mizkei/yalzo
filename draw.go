@@ -303,7 +303,7 @@ type Draw struct {
 
 func (d *Draw) DoKeyEsc() {
 	switch d.view.Mode {
-	case INPUT, CHANGE:
+	case INPUT, CHANGE, LABEL:
 		d.view.Input.DeleteAll()
 		d.view.Mode = NORMAL
 		d.Drawer = &NormalDraw{view: d.view}
