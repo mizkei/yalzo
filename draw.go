@@ -386,10 +386,12 @@ func (d *Draw) DoEnter() {
 			d.view.Mode = NORMAL
 			d.Drawer = &NormalDraw{view: d.view}
 		}
-	default:
+		d.SaveTodo()
+	case CHANGE, LABEL:
 		d.Drawer.DoEnter()
 		d.view.Mode = NORMAL
 		d.Drawer = &NormalDraw{view: d.view}
+		d.SaveTodo()
 	}
 }
 
