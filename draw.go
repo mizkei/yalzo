@@ -408,6 +408,10 @@ func (d *Draw) SaveTodo() {
 	d.view.TodoList.Save()
 }
 
+func (d *Draw) GetLabels() []string {
+	return d.view.TodoList.GetLabels()
+}
+
 func NewDraw(fp *os.File, labels []string) *Draw {
 	w, h := termbox.Size()
 

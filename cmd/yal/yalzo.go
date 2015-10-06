@@ -18,16 +18,41 @@ const (
 	WIN_HOME         = "HOMEPATH"
 )
 
-func loopDraw(path string, conf yalzo.Config) {
+func loopDraw(todopath, confpath string) {
 	// open data file
-	fp, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
+	fp, err := os.OpenFile(todopath, os.O_RDWR|os.O_CREATE, 0755)
 	if err != nil {
 		panic(err)
 	}
 	defer fp.Close()
 
+	// read config
+	cf, err := ioutil.ReadFile(confpath)
+	if err != nil {
+		cf = []byte("{\"labels\": [\"完了\", \"未完了\"]}")
+	}
+	conf, err := yalzo.LoadConf(cf)
+	if err != nil {
+		panic(err)
+	}
+
 	dr := yalzo.NewDraw(fp, conf.Labels)
 	defer dr.SaveTodo()
+	defer func() {
+		fp, err := os.OpenFile(confpath, os.O_RDWR|os.O_CREATE, 0755)
+		if err != nil {
+			return // TODO: 設定が保存できない場合の処理を追加
+		}
+		defer fp.Close()
+
+		fp.Truncate(0)
+		err = yalzo.SaveConf(fp, yalzo.Config{
+			Labels: dr.GetLabels(),
+		})
+		if err != nil {
+			return // TODO: 設定が保存できない場合の処理を追加
+		}
+	}()
 
 	for {
 		dr.Draw()
@@ -102,15 +127,5 @@ func main() {
 	yalzoPath := path.Join(home, YALZO_PATH)
 	os.Mkdir(yalzoPath, 0755)
 
-	// read config
-	cf, err := ioutil.ReadFile(path.Join(yalzoPath, CONFIG_FILE_NAME))
-	if err != nil {
-		cf = []byte("{\"labels\": [\"完了\", \"未完了\"]}")
-	}
-	conf, err := yalzo.LoadConf(cf)
-	if err != nil {
-		panic(err)
-	}
-
-	loopDraw(path.Join(yalzoPath, DATA_FILE_NAME), *conf)
+	loopDraw(path.Join(yalzoPath, DATA_FILE_NAME), path.Join(yalzoPath, CONFIG_FILE_NAME))
 }
