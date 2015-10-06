@@ -53,6 +53,23 @@ func shiftIndex(ary *[]int, val int) {
 	}
 }
 
+func GetMoveValue(r rune) int {
+	switch r {
+	case 'j':
+		return 1
+	case 'k':
+		return -1
+	case 'J':
+		return 5
+	case 'K':
+		return -5
+	case 'G':
+		return 1000
+	}
+
+	return 0
+}
+
 type Drawer interface {
 	Operator
 	Draw()
@@ -134,10 +151,8 @@ func (c *ChangeDraw) DoEnter() {
 }
 
 func (c *ChangeDraw) DoChar(r rune) {
-	if r == 'j' && c.view.Cursor < len(c.view.List)-1 {
-		c.view.Cursor += 1
-	} else if r == 'k' && 0 < c.view.Cursor {
-		c.view.Cursor -= 1
+	if s := GetMoveValue(r); s != 0 {
+		c.view.SetCursor(c.view.Cursor + s)
 	}
 }
 
@@ -259,10 +274,8 @@ func (n *NormalDraw) DoKeySpace() {
 }
 
 func (n *NormalDraw) DoChar(r rune) {
-	if r == 'j' && n.view.Cursor < len(n.view.List)-1 {
-		n.view.Cursor += 1
-	} else if r == 'k' && 0 < n.view.Cursor {
-		n.view.Cursor -= 1
+	if s := GetMoveValue(r); s != 0 {
+		n.view.SetCursor(n.view.Cursor + s)
 	}
 }
 
@@ -303,7 +316,7 @@ type Draw struct {
 
 func (d *Draw) DoKeyEsc() {
 	switch d.view.Mode {
-	case INPUT, CHANGE:
+	case INPUT, CHANGE, LABEL:
 		d.view.Input.DeleteAll()
 		d.view.Mode = NORMAL
 		d.Drawer = &NormalDraw{view: d.view}
