@@ -247,7 +247,7 @@ func (n *NormalDraw) DoKeyTab() {
 
 func (n *NormalDraw) DoKeyCtrlD() {
 	for _, i := range n.view.Selected {
-		n.view.TodoList.Delete(i)
+		n.view.TodoList.Delete(i, n.view.Tab)
 		shiftIndex(&n.view.Selected, i)
 	}
 	n.view.Cursor = 0
@@ -256,6 +256,10 @@ func (n *NormalDraw) DoKeyCtrlD() {
 }
 
 func (n *NormalDraw) DoKeyCtrlA() {
+	if len(n.view.List) == 0 {
+		return
+	}
+
 	if len(n.view.Selected) == 0 {
 		n.view.TodoList.MoveTodo(n.view.Cursor, n.view.Tab)
 	} else {
@@ -270,6 +274,10 @@ func (n *NormalDraw) DoKeyCtrlA() {
 }
 
 func (n *NormalDraw) DoKeySpace() {
+	if len(n.view.List) == 0 {
+		return
+	}
+
 	if i, b := containsVal(n.view.Selected, n.view.Cursor); b {
 		n.view.Selected = append(n.view.Selected[:i], n.view.Selected[i+1:]...)
 	} else {
@@ -330,6 +338,10 @@ func (d *Draw) DoKeyEsc() {
 func (d *Draw) DoKeyCtrlX() {
 	switch d.view.Mode {
 	case NORMAL:
+		if len(d.view.List) == 0 {
+			return
+		}
+
 		d.view.ExCheck = d.view.Cursor
 		d.view.Mode = CHANGE
 		d.Drawer = &ChangeDraw{view: d.view}
@@ -350,6 +362,10 @@ func (d *Draw) DoKeyCtrlW() {
 func (d *Draw) DoKeyCtrlL() {
 	switch d.view.Mode {
 	case NORMAL:
+		if len(d.view.List) == 0 {
+			return
+		}
+
 		d.view.Mode = LABEL
 		d.Drawer = &LabelDraw{
 			view:   d.view,
@@ -362,6 +378,10 @@ func (d *Draw) DoKeyCtrlL() {
 func (d *Draw) DoKeyCtrlV() {
 	switch d.view.Mode {
 	case NORMAL:
+		if len(d.view.List) == 0 {
+			return
+		}
+
 		d.view.Mode = INPUT
 		d.Drawer = &InputDraw{
 			view:   d.view,

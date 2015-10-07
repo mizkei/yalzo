@@ -98,28 +98,39 @@ func (tl *TodoList) Save() {
 }
 
 func (tl *TodoList) ChangeTitle(i int, t string, tab Tab) {
-	switch tab {
-	case TODO:
-		(*tl).todos[i].title = t
-	case ARCHIVE:
-		(*tl).archs[i].title = t
+	ls := tl.getListInTab(tab)
+	if len(ls)-1 < i {
+		return
 	}
+
+	ls[i].title = t
 }
 
 func (tl *TodoList) ChangeLabelName(i int, l string, tab Tab) {
-	switch tab {
-	case TODO:
-		(*tl).todos[i].label = l
-	case ARCHIVE:
-		(*tl).archs[i].label = l
+	ls := tl.getListInTab(tab)
+	if len(ls)-1 < i {
+		return
 	}
+
+	ls[i].label = l
 }
 
-func (tl *TodoList) Delete(n int) {
-	for i := n; i < len((*tl).todos); i++ {
-		(*tl).todos[i].setNumber(i)
+func (tl *TodoList) Delete(n int, tab Tab) {
+	var ls *[]Todo
+	switch tab {
+	case TODO:
+		ls = &tl.todos
+	case ARCHIVE:
+		ls = &tl.archs
 	}
-	tl.todos = append(tl.todos[:n], tl.todos[n+1:]...)
+	if len(*ls)-1 < n {
+		return
+	}
+
+	for i := n; i < len(*ls); i++ {
+		(*ls)[i].setNumber(i)
+	}
+	*ls = append((*ls)[:n], (*ls)[n+1:]...)
 }
 
 func (tl *TodoList) AddTodo(t string) int {
@@ -142,6 +153,10 @@ func (tl *TodoList) MoveTodo(n int, t Tab) {
 		isArched = !isArched
 	}
 
+	if len(*from)-1 < n {
+		return
+	}
+
 	length := len(*to)
 	(*from)[n].isArchived = isArched
 	(*from)[n].setNumber(length + 1)
@@ -153,16 +168,10 @@ func (tl *TodoList) MoveTodo(n int, t Tab) {
 }
 
 func (tl *TodoList) Exchange(i1 int, i2 int, tab Tab) {
-	switch tab {
-	case TODO:
-		tl.todos[i2].setNumber(i1 + 1)
-		tl.todos[i1].setNumber(i2 + 1)
-		tl.todos[i2], tl.todos[i1] = tl.todos[i1], tl.todos[i2]
-	case ARCHIVE:
-		tl.archs[i2].setNumber(i1 + 1)
-		tl.archs[i1].setNumber(i2 + 1)
-		tl.archs[i2], tl.archs[i1] = tl.archs[i1], tl.archs[i2]
-	}
+	ls := tl.getListInTab(tab)
+	ls[i2].setNumber(i1 + 1)
+	ls[i1].setNumber(i2 + 1)
+	ls[i2], ls[i1] = ls[i1], ls[i2]
 }
 
 func (t *Todo) setNumber(n int) {
@@ -176,6 +185,7 @@ func (tl *TodoList) getListInTab(tab Tab) []Todo {
 	case TODO:
 		return tl.todos
 	}
+
 	return []Todo{}
 }
 
