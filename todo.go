@@ -66,22 +66,30 @@ func (tl *TodoList) GetList(width int, tab Tab) []string {
 	return lines
 }
 
+func containsStr(ary []string, val string) (int, bool) {
+	for i, v := range ary {
+		if v == val {
+			return i, true
+		}
+	}
+
+	return 0, false
+}
+
 func (tl *TodoList) GetLabels() []string {
-	for i := 0; i < len(tl.todos); i++ {
-		label := tl.todos[i].label
-		if !tl.existLabel(label) && label != "" {
-			tl.labels = append(tl.labels, label)
-		}
-	}
-
-	for i := 0; i < len(tl.archs); i++ {
-		label := tl.archs[i].label
-		if !tl.existLabel(label) && label != "" {
-			tl.labels = append(tl.labels, label)
-		}
-	}
-
 	return tl.labels
+}
+
+func (tl *TodoList) AddLabel(label string) {
+	if _, is := containsStr(tl.labels, label); !is {
+		tl.labels = append(tl.labels, label)
+	}
+}
+
+func (tl *TodoList) RemoveLavel(label string) {
+	if i, is := containsStr(tl.labels, label); is {
+		tl.labels = append(tl.labels[:i], tl.labels[i-1:]...)
+	}
 }
 
 func (tl *TodoList) Save() {
@@ -159,15 +167,6 @@ func (tl *TodoList) Exchange(i1 int, i2 int, tab Tab) {
 
 func (t *Todo) setNumber(n int) {
 	(*t).no = n
-}
-
-func (tl *TodoList) existLabel(l string) bool {
-	for i := 0; i < len(tl.labels); i++ {
-		if tl.labels[i] == l {
-			return true
-		}
-	}
-	return false
 }
 
 func (tl *TodoList) getListInTab(tab Tab) []Todo {
