@@ -88,11 +88,12 @@ func (tl *TodoList) AddLabel(label string) {
 
 func (tl *TodoList) RemoveLavel(label string) {
 	if i, is := containsStr(tl.labels, label); is {
-		tl.labels = append(tl.labels[:i], tl.labels[i-1:]...)
+		tl.labels = append(tl.labels[:i], tl.labels[i+1:]...)
 	}
 }
 
 func (tl *TodoList) Save() {
+	tl.file.Seek(0, 0)
 	tl.file.Truncate(0)
 	SaveCSV(append(tl.todos, tl.archs...), tl.file)
 }

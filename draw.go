@@ -228,6 +228,25 @@ func (l *LabelDraw) Draw() {
 	}
 }
 
+// label_del
+type LabelDelDraw struct {
+	LabelDraw
+}
+
+func (ld *LabelDelDraw) DoEnter() {
+}
+
+func (ld *LabelDelDraw) DoKeyCtrlD() {
+	ld.view.TodoList.RemoveLavel(ld.Labels[ld.Cursor])
+	ld.Labels = ld.view.TodoList.GetLabels()
+}
+
+func (ld *LabelDelDraw) Draw() {
+	ld.LabelDraw.Draw()
+	FillText(ld.view.Width, 0, colorDef, colorDef, ' ')
+	PrintLine(0, " @ Label Del mode")
+}
+
 // normal
 type NormalDraw struct {
 	Nothing
@@ -328,7 +347,7 @@ type Draw struct {
 
 func (d *Draw) DoKeyEsc() {
 	switch d.view.Mode {
-	case INPUT, CHANGE, LABEL:
+	case INPUT, CHANGE, LABEL, LABEL_DEL:
 		d.view.Input.DeleteAll()
 		d.view.Mode = NORMAL
 		d.Drawer = &NormalDraw{view: d.view}
@@ -378,14 +397,29 @@ func (d *Draw) DoKeyCtrlL() {
 func (d *Draw) DoKeyCtrlV() {
 	switch d.view.Mode {
 	case NORMAL:
-		if len(d.view.List) == 0 {
-			return
-		}
-
 		d.view.Mode = INPUT
 		d.Drawer = &InputDraw{
 			view:   d.view,
 			action: LABEL,
+		}
+	}
+}
+
+func (d *Draw) DoKeyCtrlC() {
+	switch d.view.Mode {
+	case NORMAL:
+		labels := d.view.TodoList.GetLabels()
+		if len(labels) == 0 {
+			return
+		}
+
+		d.view.Mode = LABEL_DEL
+		d.Drawer = &LabelDelDraw{
+			LabelDraw{
+				view:   d.view,
+				Labels: labels,
+				Cursor: 0,
+			},
 		}
 	}
 }

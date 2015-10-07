@@ -7,6 +7,7 @@ const (
 	CHANGE
 	INPUT
 	LABEL
+	LABEL_DEL
 	RENAME
 )
 
