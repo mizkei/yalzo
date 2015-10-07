@@ -247,7 +247,7 @@ func (n *NormalDraw) DoKeyTab() {
 
 func (n *NormalDraw) DoKeyCtrlD() {
 	for _, i := range n.view.Selected {
-		n.view.TodoList.Delete(i)
+		n.view.TodoList.Delete(i, n.view.Tab)
 		shiftIndex(&n.view.Selected, i)
 	}
 	n.view.Cursor = 0

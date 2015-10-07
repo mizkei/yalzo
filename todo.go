@@ -115,15 +115,22 @@ func (tl *TodoList) ChangeLabelName(i int, l string, tab Tab) {
 	ls[i].label = l
 }
 
-func (tl *TodoList) Delete(n int) {
-	if len((*tl).todos)-1 < n {
+func (tl *TodoList) Delete(n int, tab Tab) {
+	var ls *[]Todo
+	switch tab {
+	case TODO:
+		ls = &tl.todos
+	case ARCHIVE:
+		ls = &tl.archs
+	}
+	if len(*ls)-1 < n {
 		return
 	}
 
-	for i := n; i < len((*tl).todos); i++ {
-		(*tl).todos[i].setNumber(i)
+	for i := n; i < len(*ls); i++ {
+		(*ls)[i].setNumber(i)
 	}
-	tl.todos = append(tl.todos[:n], tl.todos[n+1:]...)
+	*ls = append((*ls)[:n], (*ls)[n+1:]...)
 }
 
 func (tl *TodoList) AddTodo(t string) int {
