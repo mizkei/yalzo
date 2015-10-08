@@ -60,12 +60,9 @@ func SaveCSV(todos []Todo, w io.Writer) {
 		no := strconv.Itoa(todos[i].no)
 		l := todos[i].label
 		t := todos[i].title
+		a := strconv.FormatBool(todos[i].isArchived)
 
-		if todos[i].isArchived {
-			writer.Write([]string{no, l, t, "true"})
-		} else {
-			writer.Write([]string{no, l, t, "false"})
-		}
+		writer.Write([]string{no, l, t, a})
 	}
 	writer.Flush()
 }
