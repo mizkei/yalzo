@@ -57,12 +57,12 @@ func SaveCSV(todos []Todo, w io.Writer) {
 	writer := csv.NewWriter(w)
 
 	for i := 0; i < size; i++ {
-		no := strconv.Itoa(todos[i].no)
-		l := todos[i].label
-		t := todos[i].title
-		a := strconv.FormatBool(todos[i].isArchived)
-
-		writer.Write([]string{no, l, t, a})
+		writer.Write([]string{
+			strconv.Itoa(todos[i].no),
+			todos[i].label,
+			todos[i].title,
+			strconv.FormatBool(todos[i].isArchived),
+		})
 	}
 	writer.Flush()
 }
