@@ -4,7 +4,7 @@
 # Install
 
 ```
-go get github.com/mizkei/yalzo/cmd/yal
+$ go get github.com/mizkei/yalzo/cmd/yal
 ```
 
 binary coming soon...
