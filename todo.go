@@ -44,9 +44,11 @@ func (t Tab) String() string {
 
 func NewTodoList(fp *os.File, ls []string) *TodoList {
 	l, as, err := ReadCSV(fp)
+
 	if err != nil {
 		panic(err)
 	}
+
 	fp.Seek(0, 0)
 
 	return &TodoList{
