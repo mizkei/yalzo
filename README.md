@@ -1,4 +1,6 @@
 # yalzo
+![travis ci](https://travis-ci.org/mizkei/yalzo.svg)
+
 コマンドラインベースのシンプルTODO管理
 
 # Install
