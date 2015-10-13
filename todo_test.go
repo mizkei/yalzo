@@ -7,50 +7,61 @@ import (
 	"testing"
 )
 
-var archs = []Todo{
-	Todo{
-		label:      "Label3",
-		title:      "Todo 3",
-		isArchived: true,
-		no:         1,
-	},
-	Todo{
-		label:      "Label4",
-		title:      "Todo 4",
-		isArchived: true,
-		no:         2,
-	},
+var init_archs = func() []Todo {
+	todos := []Todo{
+		Todo{
+			label:      "Label3",
+			title:      "Todo 3",
+			isArchived: true,
+			no:         1,
+		},
+		Todo{
+			label:      "Label4",
+			title:      "Todo 4",
+			isArchived: true,
+			no:         2,
+		},
+	}
+	return todos
 }
 
-var todos = []Todo{
-	Todo{
-		label:      "Label1",
-		title:      "Todo 1",
-		isArchived: false,
-		no:         1,
-	},
-	Todo{
-		label:      "Label2",
-		title:      "Todo 2",
-		isArchived: false,
-		no:         2,
-	},
+var init_todos = func() []Todo {
+	todos := []Todo{
+		Todo{
+			label:      "Label1",
+			title:      "Todo 1",
+			isArchived: false,
+			no:         1,
+		},
+		Todo{
+			label:      "Label2",
+			title:      "Todo 2",
+			isArchived: false,
+			no:         2,
+		},
+	}
+	return todos
 }
 
-var fp, _ = ioutil.TempFile(os.TempDir(), "prefix")
-
-var labels = []string{
-	"Label1",
-	"Label2",
-	"Label3",
-	"Label4",
+var init_labels = func() []string {
+	labels := []string{
+		"Label1",
+		"Label2",
+		"Label3",
+		"Label4",
+	}
+	return labels
 }
 
-var todolist = &TodoList{
-	todos:  todos,
-	archs:  archs,
-	labels: labels,
-	file:   fp,
+var init_todolist = func() *TodoList {
+	fp, _ := ioutil.TempFile(os.TempDir(), "prefix")
+	todolist := &TodoList{
+		todos:  init_todos(),
+		archs:  init_archs(),
+		labels: init_labels(),
+		file:   fp,
+	}
+	return todolist
 }
 
 func TestConstructorWithNewTodoList(t *testing.T) {
@@ -70,6 +81,7 @@ func TestConstructorWithNewTodoList(t *testing.T) {
 }
 
 func TestGetList(t *testing.T) {
+	todolist := init_todolist()
 	tds := todolist.GetList(50, TODO)
 
 	text := "  1 [      Label1      ] Todo 1                   "
@@ -82,6 +94,7 @@ func TestGetList(t *testing.T) {
 }
 
 func TestGetLabels(t *testing.T) {
+	todolist := init_todolist()
 	lbs := todolist.GetLabels()
 
 	if !reflect.DeepEqual(labels, lbs) {
@@ -92,16 +105,19 @@ func TestGetLabels(t *testing.T) {
 }
 
 func TestAddLabel(t *testing.T) {
+	todolist := init_todolist()
 	todolist.AddLabel("Label5")
 
-	if todolist.labels[len(todolist.labels)-1] != "Label5" {
-		t.Errorf("Not match added label: %s", todolist.labels)
-	} else {
-		t.Log("Passed TestGetAddLabel.")
+	for _, v := range todolist.labels {
+		if v == "Label5" {
+			t.Log("Passed TestGetAddLabel.")
+		}
 	}
+	t.Errorf("Not match added label: %s", todolist.labels)
 }
 
 func TestRemoveLabel(t *testing.T) {
+	todolist := init_todolist()
 	todolist.RemoveLavel("Label5")
 	lbs := todolist.GetLabels()
 
@@ -116,6 +132,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestChangeTitle(t *testing.T) {
+	todolist := init_todolist()
 	todolist.ChangeTitle(0, "Title Changed 1", TODO)
 
 	if todolist.todos[0].title != "Title Changed 1" {
@@ -136,6 +153,7 @@ func TestChangeTitle(t *testing.T) {
 }
 
 func TestChangeLabelName(t *testing.T) {
+	todolist := init_todolist()
 	todolist.ChangeLabelName(0, "Label5", TODO)
 
 	if todolist.todos[0].label != "Label5" {
@@ -155,23 +173,35 @@ func TestChangeLabelName(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	todolist := init_todolist()
 	todolist.Delete(len(todolist.todos)-1, TODO)
 
 	tail_todo := todolist.todos[len(todolist.todos)-1]
-	tmp_todo := Todo{
-		label:      "Label1",
-		title:      "Todo 1",
-		isArchived: false,
-		no:         1,
+	cmp_todo := todos[len(todos)-1]
+	for _, a := range todolist.todos {
+		t.Logf("%+v", a)
+		t.Logf("%+v", cmp_todo)
+		if reflect.DeepEqual(a, cmp_todo) {
+			t.Errorf("Not deleted todo: %+v", tail_todo)
+		}
 	}
-	if !reflect.DeepEqual(tail_todo, tmp_todo) {
-		t.Errorf("Not deleted todo: %+v", tail_todo)
-	} else {
-		t.Log("Passed TestDelete.")
+	t.Log("Passed TestDelete: deleted todo of TODO tab.")
+
+	tail_arch := todolist.archs[len(todolist.archs)-1]
+	cmp_arch := todos[len(archs)-1]
+	for _, a := range todolist.archs {
+		t.Logf("%+v", a)
+		t.Logf("%+v", cmp_arch)
+		if reflect.DeepEqual(a, cmp_arch) {
+			t.Errorf("Not deleted todo: %+v", tail_arch)
+		}
 	}
+	t.Log("Passed TestDelete: deleted todo of ARCHIVE tab.")
+
 }
 
 func TestAddTodo(t *testing.T) {
+	todolist := init_todolist()
 	tmp_todo := Todo{
 		label:      "",
 		title:      "Todo 2",
@@ -180,14 +210,28 @@ func TestAddTodo(t *testing.T) {
 	}
 	todolist.AddTodo("Todo 2")
 
+	tmp_arch := Todo{
+		label:      "",
+		title:      "Todo 4",
+		isArchived: true,
+		no:         2,
+	}
+
 	if !reflect.DeepEqual(todolist.todos[len(todolist.todos)-1], tmp_todo) {
 		t.Errorf("Not added todo: %+v", todolist.todos)
+	} else {
+		t.Log("Passed TestAddTodo.")
+	}
+
+	if !reflect.DeepEqual(todolist.archs[len(todolist.archs)-1], tmp_arch) {
+		t.Errorf("Not added todo: %+v", todolist.archs)
 	} else {
 		t.Log("Passed TestAddTodo.")
 	}
 }
 
 func TestMoveTodo(t *testing.T) {
+	todolist := init_todolist()
 	todolist.MoveTodo(0, TODO)
 	tmp_arch := Todo{
 		label:      "Label1",
@@ -218,6 +262,7 @@ func TestMoveTodo(t *testing.T) {
 }
 
 func TestExchange(t *testing.T) {
+	todolist := init_todolist()
 	todolist.Exchange(0, 1, TODO)
 
 	if reflect.DeepEqual(todolist.todos[0], todos[1]) {
