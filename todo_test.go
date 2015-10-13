@@ -281,3 +281,14 @@ func TestExchange(t *testing.T) {
 		todolist.Exchange(0, 1, ARCHIVE)
 	}
 }
+
+// private functions
+
+func containsTodo(todo Todo, todos []Todo) (int, bool) {
+	for i, v := range todos {
+		if reflect.DeepEqual(v, todo) {
+			return i, true
+		}
+	}
+	return 0, false
+}
