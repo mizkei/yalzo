@@ -12,7 +12,7 @@ func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
 	reader.LazyQuotes = true
 	reader.Comment = '#'
 
-	todos := make([]Todo, 0, 100)
+	inproc := make([]Todo, 0, 100)
 	archs := make([]Todo, 0, 100)
 
 	for {
@@ -23,45 +23,34 @@ func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
 			panic(err)
 		}
 
-		arch := false
-
-		no, err := strconv.Atoi(record[0])
-
+		isArchived, err := strconv.ParseBool(record[2])
 		if err != nil {
 			return nil, nil, err
 		}
 
-		if record[3] == "true" {
-			arch = true
-		}
-
 		todo := &Todo{
-			no:         no,
-			label:      strings.TrimSpace(record[1]),
-			title:      strings.TrimSpace(record[2]),
-			isArchived: arch,
+			label: strings.TrimSpace(record[0]),
+			title: strings.TrimSpace(record[1]),
 		}
 
-		if arch {
-			archs = append(archs, (*todo))
+		if isArchived {
+			archs = append(archs, *todo)
 		} else {
-			todos = append(todos, (*todo))
+			inproc = append(inproc, *todo)
 		}
 	}
 
-	return todos, archs, nil
+	return inproc, archs, nil
 }
 
-func SaveCSV(todos []Todo, w io.Writer) {
-	size := len(todos)
+func SaveCSV(todos []Todo, isArchived bool, w io.Writer) {
 	writer := csv.NewWriter(w)
 
-	for i := 0; i < size; i++ {
+	for _, v := range todos {
 		writer.Write([]string{
-			strconv.Itoa(todos[i].no),
-			todos[i].label,
-			todos[i].title,
-			strconv.FormatBool(todos[i].isArchived),
+			v.label,
+			v.title,
+			strconv.FormatBool(isArchived),
 		})
 	}
 	writer.Flush()
