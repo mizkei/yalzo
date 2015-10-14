@@ -95,6 +95,7 @@ func TestGetList(t *testing.T) {
 
 func TestGetLabels(t *testing.T) {
 	todolist := init_todolist()
+	labels := init_labels()
 	lbs := todolist.GetLabels()
 
 	if !reflect.DeepEqual(labels, lbs) {
@@ -108,12 +109,13 @@ func TestAddLabel(t *testing.T) {
 	todolist := init_todolist()
 	todolist.AddLabel("Label5")
 
-	for _, v := range todolist.labels {
-		if v == "Label5" {
-			t.Log("Passed TestGetAddLabel.")
-		}
+	_, b := containsStr(todolist.labels, "Label5")
+
+	if b {
+		t.Log("Passed TestGetAddLabel.")
+	} else {
+		t.Errorf("Not match added label: %s", todolist.labels)
 	}
-	t.Errorf("Not match added label: %s", todolist.labels)
 }
 
 func TestRemoveLabel(t *testing.T) {
@@ -174,30 +176,28 @@ func TestChangeLabelName(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	todolist := init_todolist()
-	todolist.Delete(len(todolist.todos)-1, TODO)
+	todos_size := len(todolist.todos)
+	archs_size := len(todolist.archs)
+	cmp_todo := todolist.todos[todos_size-1]
+	cmp_arch := todolist.archs[archs_size-1]
 
-	tail_todo := todolist.todos[len(todolist.todos)-1]
-	cmp_todo := todos[len(todos)-1]
-	for _, a := range todolist.todos {
-		t.Logf("%+v", a)
-		t.Logf("%+v", cmp_todo)
-		if reflect.DeepEqual(a, cmp_todo) {
-			t.Errorf("Not deleted todo: %+v", tail_todo)
-		}
+	todolist.Delete(todos_size-1, TODO)
+
+	if containsTodo(cmp_todo, todolist.todos) || todos_size == len(todolist.todos) {
+		t.Errorf("Not deleted todo: %+v", todolist.todos)
+		t.Errorf("                : %+v", cmp_todo)
+	} else {
+		t.Log("Passed TestDelete: deleted todo of TODO tab.")
 	}
-	t.Log("Passed TestDelete: deleted todo of TODO tab.")
 
-	tail_arch := todolist.archs[len(todolist.archs)-1]
-	cmp_arch := todos[len(archs)-1]
-	for _, a := range todolist.archs {
-		t.Logf("%+v", a)
-		t.Logf("%+v", cmp_arch)
-		if reflect.DeepEqual(a, cmp_arch) {
-			t.Errorf("Not deleted todo: %+v", tail_arch)
-		}
+	todolist.Delete(len(todolist.archs)-1, ARCHIVE)
+
+	if containsTodo(cmp_arch, todolist.archs) || archs_size == len(todolist.archs) {
+		t.Errorf("Not deleted todo: %+v", todolist.archs)
+		t.Errorf("                : %+v", cmp_todo)
+	} else {
+		t.Log("Passed TestDelete: deleted todo of ARCHIVE tab.")
 	}
-	t.Log("Passed TestDelete: deleted todo of ARCHIVE tab.")
-
 }
 
 func TestAddTodo(t *testing.T) {
@@ -206,25 +206,12 @@ func TestAddTodo(t *testing.T) {
 		label:      "",
 		title:      "Todo 2",
 		isArchived: false,
-		no:         2,
+		no:         3,
 	}
 	todolist.AddTodo("Todo 2")
 
-	tmp_arch := Todo{
-		label:      "",
-		title:      "Todo 4",
-		isArchived: true,
-		no:         2,
-	}
-
 	if !reflect.DeepEqual(todolist.todos[len(todolist.todos)-1], tmp_todo) {
 		t.Errorf("Not added todo: %+v", todolist.todos)
-	} else {
-		t.Log("Passed TestAddTodo.")
-	}
-
-	if !reflect.DeepEqual(todolist.archs[len(todolist.archs)-1], tmp_arch) {
-		t.Errorf("Not added todo: %+v", todolist.archs)
 	} else {
 		t.Log("Passed TestAddTodo.")
 	}
@@ -263,6 +250,8 @@ func TestMoveTodo(t *testing.T) {
 
 func TestExchange(t *testing.T) {
 	todolist := init_todolist()
+	todos := init_todos()
+	archs := init_archs()
 	todolist.Exchange(0, 1, TODO)
 
 	if reflect.DeepEqual(todolist.todos[0], todos[1]) {
@@ -284,11 +273,11 @@ func TestExchange(t *testing.T) {
 
 // private functions
 
-func containsTodo(todo Todo, todos []Todo) (int, bool) {
-	for i, v := range todos {
+func containsTodo(todo Todo, todos []Todo) bool {
+	for _, v := range todos {
 		if reflect.DeepEqual(v, todo) {
-			return i, true
+			return true
 		}
 	}
-	return 0, false
+	return false
 }
