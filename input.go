@@ -115,6 +115,12 @@ func (ib *InputBox) InsertRune(r rune) {
 	ib.MoveCursorOneRuneForward()
 }
 
+func (ib *InputBox) InsertStr(s string) {
+	for _, r := range s {
+		ib.InsertRune(r)
+	}
+}
+
 func (ib *InputBox) GetCursorPos() int {
 	return ib.cursorVOffset + ib.prefixWidth
 }

@@ -109,6 +109,15 @@ func (tl *TodoList) ChangeTitle(i int, t string, tab Tab) {
 	ls[i].title = t
 }
 
+func (tl *TodoList) GetTodoTitle(i int, tab Tab) string {
+	ls := tl.getListInTab(tab)
+	if len(ls)-1 < i {
+		return ""
+	}
+
+	return ls[i].title
+}
+
 func (tl *TodoList) ChangeLabelName(i int, l string, tab Tab) {
 	ls := tl.getListInTab(tab)
 	if len(ls)-1 < i {

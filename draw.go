@@ -428,6 +428,8 @@ func (d *Draw) DoKeyCtrlR() {
 	switch d.view.Mode {
 	case NORMAL:
 		d.view.Mode = INPUT
+		title := d.view.TodoList.GetTodoTitle(d.view.Cursor, d.view.Tab)
+		d.view.Input.InsertStr(title)
 		d.Drawer = &InputDraw{
 			view:   d.view,
 			action: RENAME,
