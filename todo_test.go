@@ -109,13 +109,20 @@ func TestAddLabel(t *testing.T) {
 	todolist := init_todolist()
 	todolist.AddLabel("Label5")
 
-	_, b := containsStr(todolist.labels, "Label5")
-
-	if b {
-		t.Log("Passed TestGetAddLabel.")
+	if _, is := containsStr(todolist.labels, "Label5"); is {
+		t.Log("Passed TestAddLabel.")
 	} else {
 		t.Errorf("Not match added label: %s", todolist.labels)
 	}
+
+	pre_size := len(todolist.labels)
+	todolist.AddLabel("Label5")
+	if len(todolist.labels) == pre_size {
+		t.Log("Passed TestAddLabel (same label).")
+	} else {
+		t.Errorf("Don't add a same label: %s", todolist.labels)
+	}
+
 }
 
 func TestRemoveLabel(t *testing.T) {
