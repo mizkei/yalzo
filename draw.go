@@ -3,466 +3,245 @@ package yalzo
 import (
 	"os"
 
-	"github.com/mattn/go-runewidth"
+	"github.com/mizkei/yalzo/mode"
 	"github.com/nsf/termbox-go"
 )
 
 const (
-	INPUT_PREFIX = "> "
-	colorDef     = termbox.ColorDefault
+	colorDef = termbox.ColorDefault
 )
 
-func PrintText(x, y int, fg, bg termbox.Attribute, text string) int {
-	for _, c := range text {
-		termbox.SetCell(x, y, c, fg, bg)
-		x += runewidth.RuneWidth(c)
-	}
-
-	return x
-}
-
-func PrintLine(y int, str string) int {
-	PrintText(0, y, colorDef, colorDef, str)
-
-	return y + 1
-}
-
-func FillText(n, y int, fg, bg termbox.Attribute, c rune) {
-	x := 0
-	for i := 0; i < n; i += 1 {
-		termbox.SetCell(x, y, c, fg, bg)
-		x += runewidth.RuneWidth(c)
-	}
-}
-
-func containsVal(ary []int, val int) (int, bool) {
-	for i, v := range ary {
-		if v == val {
-			return i, true
-		}
-	}
-
-	return 0, false
-}
-
-func shiftIndex(ary *[]int, val int) {
-	for i, v := range *ary {
-		if v > val {
-			(*ary)[i] -= 1
-		}
-	}
-}
-
-func GetMoveValue(r rune) int {
-	switch r {
-	case 'j':
-		return 1
-	case 'k':
-		return -1
-	case 'J':
-		return 5
-	case 'K':
-		return -5
-	case 'G':
-		return 1000
-	}
-
-	return 0
-}
-
 type Drawer interface {
-	Operator
+	mode.Operator
+	GetCursorIndex() int
+	GetSelectedIndex() []int
+	SetLister(mode.Lister)
+	GetListLength() int
+	Mode() mode.Mode
+	Reset()
 	Draw()
 }
 
-// input
-type InputDraw struct {
-	Nothing
-	view   *view
-	action Mode
-}
-
-func (i *InputDraw) DoKeyArrowLeft() {
-	i.view.Input.MoveCursorOneRuneBackward()
-}
-
-func (i *InputDraw) DoKeyCtrlB() {
-	i.view.Input.MoveCursorOneRuneBackward()
-}
-
-func (i *InputDraw) DoKeyArrowRight() {
-	i.view.Input.MoveCursorOneRuneForward()
-}
-
-func (i *InputDraw) DoKeyCtrlF() {
-	i.view.Input.MoveCursorOneRuneForward()
-}
-
-func (i *InputDraw) DoKeyBackspace() {
-	i.view.Input.DeleteRuneBackward()
-}
-
-func (i *InputDraw) DoKeyDelete() {
-	i.view.Input.DeleteRuneForward()
-}
-
-func (i *InputDraw) DoKeySpace() {
-	i.view.Input.InsertRune(' ')
-}
-
-func (i *InputDraw) DoChar(r rune) {
-	i.view.Input.InsertRune(r)
-}
-
-func (i *InputDraw) DoEnter() {
-	switch i.action {
-	case NORMAL:
-		no := i.view.TodoList.AddTodo(string(i.view.Input.input))
-		i.view.Cursor = no
-	case RENAME:
-		i.view.TodoList.ChangeTitle(i.view.Cursor, string(i.view.Input.input), i.view.Tab)
-	case LABEL:
-		i.view.TodoList.AddLabel(string(i.view.Input.input))
-	}
-	i.view.Input.DeleteAll()
-	i.view.List = i.view.TodoList.GetList(i.view.Width, i.view.Tab)
-}
-
-func (i *InputDraw) Draw() {
-	switch i.action {
-	case NORMAL:
-		(&NormalDraw{view: i.view}).Draw()
-	case RENAME:
-		PrintLine(1, "(old) > "+i.view.List[i.view.Cursor])
-	case LABEL:
-		(&LabelDraw{view: i.view, Labels: i.view.TodoList.GetLabels(), Cursor: -1}).Draw()
-	}
-
-	FillText(i.view.Width, 0, colorDef, colorDef, ' ')
-	PrintLine(0, i.view.Input.GetInputString())
-	termbox.SetCursor(i.view.Input.prefixWidth+i.view.Input.cursorVOffset, 0)
-}
-
-//change
-type ChangeDraw struct {
-	Nothing
-	view *view
-}
-
-func (c *ChangeDraw) DoEnter() {
-	c.view.TodoList.Exchange(c.view.Cursor, c.view.ExCheck, c.view.Tab)
-	c.view.List = c.view.TodoList.GetList(c.view.Width, c.view.Tab)
-}
-
-func (c *ChangeDraw) DoChar(r rune) {
-	if s := GetMoveValue(r); s != 0 {
-		c.view.SetCursor(c.view.Cursor + s)
-	}
-}
-
-func (c *ChangeDraw) Draw() {
-	py := 0
-
-	// input
-	py = PrintLine(py, " @ Change mode")
-
-	// tab
-	pX := 0
-	for _, t := range []Tab{TODO, ARCHIVE} {
-		if t == c.view.Tab {
-			pX += PrintText(pX, 1, termbox.ColorBlack, termbox.ColorWhite, " "+t.String()+" ")
-		} else {
-			pX += PrintText(pX, 1, colorDef, colorDef, " "+t.String()+" ")
-		}
-	}
-	py += 1
-
-	// list
-	for i, e := range c.view.List {
-		if i == c.view.Cursor {
-			PrintText(0, py, colorDef, termbox.ColorCyan, e)
-		} else if i == c.view.ExCheck {
-			PrintText(0, py, colorDef, termbox.ColorGreen, e)
-		} else {
-			PrintText(0, py, colorDef, colorDef, e)
-		}
-		py += 1
-	}
-}
-
-// label
-type LabelDraw struct {
-	Nothing
-	view   *view
-	Labels []string
-	Cursor int
-}
-
-func (l *LabelDraw) DoEnter() {
-	l.view.TodoList.ChangeLabelName(l.view.Cursor, l.Labels[l.Cursor], l.view.Tab)
-	l.view.List = l.view.TodoList.GetList(l.view.Width, l.view.Tab)
-}
-
-func (l *LabelDraw) DoChar(r rune) {
-	if r == 'j' && l.Cursor < len(l.Labels)-1 {
-		l.Cursor += 1
-	} else if r == 'k' && 0 < l.Cursor {
-		l.Cursor -= 1
-	}
-}
-
-func (l *LabelDraw) Draw() {
-	py := 0
-
-	PrintLine(py, l.view.List[l.view.Cursor])
-	py += 1
-
-	for i, e := range l.Labels {
-		PrintText(1, py, colorDef, colorDef, "*")
-		if i == l.Cursor {
-			PrintText(3, py, colorDef, termbox.ColorCyan, e)
-		} else {
-			PrintText(3, py, colorDef, colorDef, e)
-		}
-		py += 1
-	}
-}
-
-// label_del
-type LabelDelDraw struct {
-	LabelDraw
-}
-
-func (ld *LabelDelDraw) DoEnter() {
-}
-
-func (ld *LabelDelDraw) DoKeyCtrlD() {
-	ld.view.TodoList.RemoveLavel(ld.Labels[ld.Cursor])
-	ld.Labels = ld.view.TodoList.GetLabels()
-}
-
-func (ld *LabelDelDraw) Draw() {
-	ld.LabelDraw.Draw()
-	FillText(ld.view.Width, 0, colorDef, colorDef, ' ')
-	PrintLine(0, " @ Label Del mode")
-}
-
-// normal
-type NormalDraw struct {
-	Nothing
-	view *view
-}
-
-func (n *NormalDraw) DoKeyTab() {
-	n.view.Cursor = 0
-	n.view.Selected = []int{}
-	if n.view.Tab == TODO {
-		n.view.Tab = ARCHIVE
-	} else {
-		n.view.Tab = TODO
-	}
-	n.view.List = n.view.TodoList.GetList(n.view.Width, n.view.Tab)
-}
-
-func (n *NormalDraw) DoKeyCtrlD() {
-	for _, i := range n.view.Selected {
-		n.view.TodoList.Delete(i, n.view.Tab)
-		shiftIndex(&n.view.Selected, i)
-	}
-	n.view.Cursor = 0
-	n.view.Selected = []int{}
-	n.view.List = n.view.TodoList.GetList(n.view.Width, n.view.Tab)
-}
-
-func (n *NormalDraw) DoKeyCtrlA() {
-	if len(n.view.List) == 0 {
-		return
-	}
-
-	if len(n.view.Selected) == 0 {
-		n.view.TodoList.MoveTodo(n.view.Cursor, n.view.Tab)
-	} else {
-		for _, i := range n.view.Selected {
-			n.view.TodoList.MoveTodo(i, n.view.Tab)
-			shiftIndex(&n.view.Selected, i)
-		}
-	}
-	n.view.Cursor = 0
-	n.view.Selected = []int{}
-	n.view.List = n.view.TodoList.GetList(n.view.Width, n.view.Tab)
-}
-
-func (n *NormalDraw) DoKeySpace() {
-	if len(n.view.List) == 0 {
-		return
-	}
-
-	if i, b := containsVal(n.view.Selected, n.view.Cursor); b {
-		n.view.Selected = append(n.view.Selected[:i], n.view.Selected[i+1:]...)
-	} else {
-		n.view.Selected = append(n.view.Selected, n.view.Cursor)
-	}
-}
-
-func (n *NormalDraw) DoChar(r rune) {
-	if s := GetMoveValue(r); s != 0 {
-		n.view.SetCursor(n.view.Cursor + s)
-	}
-}
-
-func (n *NormalDraw) Draw() {
-	py := 0
-
-	// input
-	py = PrintLine(py, " === TODO Manager ===")
-
-	// tab
-	pX := 0
-	for _, t := range []Tab{TODO, ARCHIVE} {
-		if t == n.view.Tab {
-			pX += PrintText(pX, 1, termbox.ColorBlack, termbox.ColorWhite, " "+t.String()+" ")
-		} else {
-			pX += PrintText(pX, 1, colorDef, colorDef, " "+t.String()+" ")
-		}
-	}
-	py += 1
-
-	// list
-	for i, e := range n.view.List {
-		if i == n.view.Cursor {
-			PrintText(0, py, colorDef, termbox.ColorCyan, e)
-		} else if _, t := containsVal(n.view.Selected, i); t {
-			PrintText(0, py, colorDef, termbox.ColorMagenta, e)
-		} else {
-			PrintText(0, py, colorDef, colorDef, e)
-		}
-		py += 1
-	}
+type Target struct {
+	Index int
+	Tab   Tab
 }
 
 type Draw struct {
 	Drawer
-	view *view
+	data   *Data
+	tab    Tab
+	target *Target
+	file   *os.File
 }
 
 func (d *Draw) DoKeyEsc() {
-	switch d.view.Mode {
-	case INPUT, CHANGE, LABEL, LABEL_DEL:
-		d.view.Input.DeleteAll()
-		d.view.Mode = NORMAL
-		d.Drawer = &NormalDraw{view: d.view}
+	w, h := termbox.Size()
+
+	switch d.Drawer.Mode() {
+	case mode.INPUT, mode.EXCHANGE:
+		view := mode.NewView(w, h)
+		d.Drawer = &mode.NormalDraw{
+			View: *view,
+			Tab:  d.tab,
+		}
+		d.SetLister(d.tab)
+	case mode.NORMAL:
+		d.Reset()
 	}
 }
 
-func (d *Draw) DoKeyCtrlX() {
-	switch d.view.Mode {
-	case NORMAL:
-		if len(d.view.List) == 0 {
-			return
+func (d *Draw) DoKeyTab() {
+	if d.tab == LABEL {
+		return
+	}
+
+	w, h := termbox.Size()
+
+	switch d.Drawer.Mode() {
+	case mode.NORMAL:
+		if d.tab == INPROCESS {
+			d.tab = ARCHIVE
+		} else if d.tab == ARCHIVE {
+			d.tab = INPROCESS
 		}
 
-		d.view.ExCheck = d.view.Cursor
-		d.view.Mode = CHANGE
-		d.Drawer = &ChangeDraw{view: d.view}
+		view := mode.NewView(w, h)
+		d.Drawer = &mode.NormalDraw{
+			View: *view,
+			Tab:  d.tab,
+		}
+		d.SetLister(d.tab)
+	}
+}
+
+func (d *Draw) DoKeyCtrlA() {
+	if d.tab == LABEL {
+		return
+	}
+
+	w, h := termbox.Size()
+
+	switch d.Drawer.Mode() {
+	case mode.NORMAL:
+		selected := d.GetSelectedIndex()
+		if len(selected) == 0 {
+			d.data.MoveTodo(d.GetCursorIndex(), d.tab)
+		} else {
+			for _, i := range selected {
+				d.data.MoveTodo(i, d.tab)
+				mode.ShiftIndex(&selected, i)
+			}
+		}
+
+		view := mode.NewView(w, h)
+		d.Drawer = &mode.NormalDraw{
+			View: *view,
+			Tab:  d.tab,
+		}
+		d.SetLister(d.tab)
 	}
 }
 
 func (d *Draw) DoKeyCtrlW() {
-	switch d.view.Mode {
-	case NORMAL:
-		d.view.Mode = INPUT
-		d.Drawer = &InputDraw{
-			view:   d.view,
-			action: NORMAL,
+	w, h := termbox.Size()
+
+	switch d.Drawer.Mode() {
+	case mode.NORMAL:
+		view := mode.NewView(w, h)
+		d.Drawer = &mode.InputDraw{
+			View: *view,
+			Act:  mode.INSERT,
 		}
+		d.SetLister(d.tab)
+	default:
+		d.Drawer.DoKeyCtrlW()
 	}
 }
 
 func (d *Draw) DoKeyCtrlL() {
-	switch d.view.Mode {
-	case NORMAL:
-		if len(d.view.List) == 0 {
+	w, h := termbox.Size()
+
+	switch d.Drawer.Mode() {
+	case mode.NORMAL:
+		if d.tab == LABEL || d.GetListLength() == 0 {
 			return
 		}
 
-		d.view.Mode = LABEL
-		d.Drawer = &LabelDraw{
-			view:   d.view,
-			Labels: d.view.TodoList.GetLabels(),
-			Cursor: 0,
+		view := mode.NewView(w, h)
+		d.target = &Target{
+			Index: d.GetCursorIndex(),
+			Tab:   d.tab,
 		}
+		d.tab = LABEL
+		d.Drawer = &mode.LabelSetDraw{
+			View: *view,
+			Tab:  d.tab,
+		}
+		d.SetLister(d.tab)
+	default:
+		d.Drawer.DoKeyCtrlL()
 	}
 }
 
 func (d *Draw) DoKeyCtrlV() {
-	switch d.view.Mode {
-	case NORMAL:
-		d.view.Mode = INPUT
-		d.Drawer = &InputDraw{
-			view:   d.view,
-			action: LABEL,
+	w, h := termbox.Size()
+
+	switch d.Drawer.Mode() {
+	case mode.NORMAL:
+		if d.tab == LABEL {
+			d.tab = INPROCESS
+		} else {
+			d.tab = LABEL
 		}
+
+		view := mode.NewView(w, h)
+		d.Drawer = &mode.NormalDraw{
+			View: *view,
+			Tab:  d.tab,
+		}
+		d.SetLister(d.tab)
+	default:
+		d.Drawer.DoKeyCtrlV()
 	}
 }
 
-func (d *Draw) DoKeyCtrlC() {
-	switch d.view.Mode {
-	case NORMAL:
-		labels := d.view.TodoList.GetLabels()
-		if len(labels) == 0 {
-			return
-		}
+func (d *Draw) DoKeyCtrlX() {
+	w, h := termbox.Size()
 
-		d.view.Mode = LABEL_DEL
-		d.Drawer = &LabelDelDraw{
-			LabelDraw{
-				view:   d.view,
-				Labels: labels,
-				Cursor: 0,
-			},
+	switch d.Drawer.Mode() {
+	case mode.NORMAL:
+		view := mode.NewViewWithCheck(w, h, d.GetCursorIndex())
+		d.Drawer = &mode.ExchangeDraw{
+			View: *view,
+			Tab:  d.tab,
 		}
+		d.SetLister(d.tab)
+	default:
+		d.Drawer.DoKeyCtrlV()
 	}
 }
 
 func (d *Draw) DoKeyCtrlR() {
-	switch d.view.Mode {
-	case NORMAL:
-		d.view.Mode = INPUT
-		title := d.view.TodoList.GetTodoTitle(d.view.Cursor, d.view.Tab)
-		d.view.Input.InsertStr(title)
-		d.Drawer = &InputDraw{
-			view:   d.view,
-			action: RENAME,
+	w, h := termbox.Size()
+
+	switch d.Drawer.Mode() {
+	case mode.NORMAL:
+		view := mode.NewView(w, h)
+		view.Cursor = d.GetCursorIndex()
+		d.Drawer = &mode.InputDraw{
+			View: *view,
+			Act:  mode.RENAME,
 		}
+		d.SetLister(d.tab)
+	default:
+		d.Drawer.DoKeyCtrlR()
 	}
 }
 
 func (d *Draw) DoEnter() {
-	switch d.view.Mode {
-	case INPUT:
-		d.Drawer.DoEnter()
-		v, ok := d.Drawer.(*InputDraw)
-		if !ok {
-			break
-		}
-		switch v.action {
-		case NORMAL:
-			d.view.Mode = LABEL
-			d.Drawer = &LabelDraw{
-				view:   d.view,
-				Labels: d.view.TodoList.GetLabels(),
-				Cursor: 0,
+	w, h := termbox.Size()
+	d.Drawer.DoEnter()
+
+	switch d.Drawer.Mode() {
+	case mode.INPUT:
+		iDraw := d.Drawer.(*mode.InputDraw)
+		view := mode.NewView(w, h)
+		if iDraw.Act == mode.RENAME || d.tab == LABEL {
+			d.Drawer = &mode.NormalDraw{
+				View: *view,
+				Tab:  d.tab,
 			}
-		case RENAME, LABEL:
-			d.view.Mode = NORMAL
-			d.Drawer = &NormalDraw{view: d.view}
+		} else {
+			d.target = &Target{
+				Index: d.GetListLength() - 1,
+				Tab:   d.tab,
+			}
+			d.tab = LABEL
+			d.Drawer = &mode.LabelSetDraw{
+				View: *view,
+				Tab:  d.tab,
+			}
 		}
-		d.SaveTodo()
-	case CHANGE, LABEL:
-		d.Drawer.DoEnter()
-		d.view.Mode = NORMAL
-		d.Drawer = &NormalDraw{view: d.view}
-		d.SaveTodo()
+		d.SetLister(d.tab)
+	case mode.EXCHANGE:
+		view := mode.NewView(w, h)
+		d.Drawer = &mode.NormalDraw{
+			View: *view,
+			Tab:  d.tab,
+		}
+		d.SetLister(d.tab)
+	case mode.LABELSET:
+		view := mode.NewView(w, h)
+		d.tab = d.target.Tab
+		nd := &mode.NormalDraw{
+			View: *view,
+			Tab:  d.tab,
+		}
+		i := d.data.Labels.GetPresentName(d.GetCursorIndex())
+		d.Drawer = nd
+		d.SetLister(d.tab)
+		nd.ChangeLabel(d.target.Index, i)
 	}
 }
 
@@ -475,33 +254,55 @@ func (d *Draw) Draw() {
 	termbox.Flush()
 }
 
-func (d *Draw) SaveTodo() {
-	d.view.TodoList.Save()
+func (d *Draw) SetLister(tab Tab) {
+	switch tab {
+	case INPROCESS:
+		d.Drawer.SetLister(d.data.InProcess)
+	case ARCHIVE:
+		d.Drawer.SetLister(d.data.Archive)
+	case LABEL:
+		d.Drawer.SetLister(d.data.Labels)
+	}
+}
+
+func (d *Draw) SaveData() {
+	d.file.Seek(0, 0)
+	d.file.Truncate(0)
+	SaveCSV(*d.data.InProcess, false, d.file)
+	SaveCSV(*d.data.Archive, true, d.file)
 }
 
 func (d *Draw) GetLabels() []string {
-	return d.view.TodoList.GetLabels()
+	return *d.data.Labels
 }
 
 func NewDraw(fp *os.File, labels []string) *Draw {
 	w, h := termbox.Size()
+	tab := INPROCESS
 
-	view := &view{
-		Width:    w,
-		Height:   h,
-		TodoList: NewTodoList(fp, labels),
-		Mode:     NORMAL,
-		Input:    &InputBox{prefix: INPUT_PREFIX, prefixWidth: len(INPUT_PREFIX)},
-		Tab:      TODO,
-		List:     nil,
-		Cursor:   0,
-		Selected: make([]int, 0, 20),
+	inproc, arch, err := ReadCSV(fp)
+	if err != nil {
+		panic(err)
 	}
+	fp.Seek(0, 0)
 
-	view.List = view.TodoList.GetList(view.Width, view.Tab)
+	data := &Data{Labels: &LabelList{}}
+	data.InProcess = inproc
+	data.Archive = arch
+	*data.Labels = labels
+
+	view := mode.NewView(w, h)
+	view.Reset()
+	drawer := &mode.NormalDraw{
+		View: *view,
+		Tab:  tab,
+	}
+	drawer.SetLister(data.InProcess)
 
 	return &Draw{
-		Drawer: &NormalDraw{view: view},
-		view:   view,
+		Drawer: drawer,
+		data:   data,
+		tab:    tab,
+		file:   fp,
 	}
 }

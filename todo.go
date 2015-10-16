@@ -14,7 +14,7 @@ const (
 func makeCenterText(text string, width int) string {
 	ln := runewidth.StringWidth(text)
 	if ln > width {
-		return runewidth.Truncate(label_s, width, "")
+		return runewidth.Truncate(text, width, "")
 	}
 
 	padding := repeatSpace((width - ln) / 2)
@@ -50,7 +50,7 @@ func fillSpace(text string, limit int) string {
 
 	buf := bytes.NewBufferString(text)
 	for ; ln < limit; ln += 1 {
-		buf.Write(' ')
+		buf.Write([]byte(" "))
 	}
 	return buf.String()
 }
@@ -79,10 +79,14 @@ func (tl *TodoList) IsInAryRange(i int) bool {
 	return true
 }
 
+func (tl *TodoList) GetListLength() int {
+	return len(*tl)
+}
+
 func (tl *TodoList) GetList(width int) []string {
 	lines := make([]string, 0, 100)
 	for i, v := range *tl {
-		lines = append(lines, tl.createTodoText(i+1, width))
+		lines = append(lines, v.createTodoText(i+1, width))
 	}
 
 	return lines
@@ -93,7 +97,7 @@ func (tl *TodoList) Rename(i int, title string) {
 		return
 	}
 
-	tl[i].title = title
+	(*tl)[i].title = title
 }
 
 func (tl *TodoList) GetPresentName(i int) string {
@@ -101,26 +105,26 @@ func (tl *TodoList) GetPresentName(i int) string {
 		return ""
 	}
 
-	return tl[i].title
+	return (*tl)[i].title
 }
 
 func (tl *TodoList) ChangeLabel(i int, name string) {
 	if !tl.IsInAryRange(i) {
-		return ""
+		return
 	}
 
-	tl[i].label = name
+	(*tl)[i].label = name
 }
 
-func (tl *TodoList) Remove(i int) Todo {
+func (tl *TodoList) Remove(i int) interface{} {
 	if !tl.IsInAryRange(i) {
-		return ""
+		return nil
 	}
 
 	delValue := (*tl)[i]
 	*tl = append((*tl)[:i], (*tl)[i+1:]...)
 
-	return delValue
+	return &delValue
 }
 
 func (tl *TodoList) Add(title string) int {

@@ -2,6 +2,10 @@ package yalzo
 
 type LabelList []string
 
+func (l *LabelList) GetListLength() int {
+	return len(*l)
+}
+
 func (l *LabelList) GetList(width int) []string {
 	return *l
 }
@@ -32,7 +36,7 @@ func (l *LabelList) Add(label string) int {
 	return len(*l)
 }
 
-func (l *LabelList) Remove(i int) string {
+func (l *LabelList) Remove(i int) interface{} {
 	if !l.IsInAryRange(i) {
 		return ""
 	}
@@ -67,6 +71,6 @@ func (l *LabelList) Exchange(i, j int) {
 	(*l)[i], (*l)[j] = (*l)[j], (*l)[i]
 }
 
-func (l *LabelList) ChageLabel(i int, name string) {
+func (l *LabelList) ChangeLabel(i int, name string) {
 	l.Rename(i, name)
 }

@@ -7,13 +7,15 @@ import (
 	"strings"
 )
 
-func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
+func ReadCSV(r io.Reader) (*TodoList, *TodoList, error) {
 	reader := csv.NewReader(r)
 	reader.LazyQuotes = true
 	reader.Comment = '#'
 
-	inproc := make([]Todo, 0, 100)
-	archs := make([]Todo, 0, 100)
+	var inproc, archs *TodoList = &TodoList{}, &TodoList{}
+
+	*inproc = make([]Todo, 0, 100)
+	*archs = make([]Todo, 0, 100)
 
 	for {
 		record, err := reader.Read()
@@ -34,9 +36,9 @@ func ReadCSV(r io.Reader) ([]Todo, []Todo, error) {
 		}
 
 		if isArchived {
-			archs = append(archs, *todo)
+			*archs = append(*archs, *todo)
 		} else {
-			inproc = append(inproc, *todo)
+			*inproc = append(*inproc, *todo)
 		}
 	}
 
