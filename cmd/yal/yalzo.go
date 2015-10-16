@@ -37,7 +37,7 @@ func loopDraw(todopath, confpath string) {
 	}
 
 	dr := yalzo.NewDraw(fp, conf.Labels)
-	defer dr.SaveTodo()
+	defer dr.SaveData()
 	defer func() {
 		fp, err := os.OpenFile(confpath, os.O_RDWR|os.O_CREATE, 0755)
 		if err != nil {
@@ -85,8 +85,6 @@ func loopDraw(todopath, confpath string) {
 				dr.DoKeyCtrlL()
 			case termbox.KeyCtrlV:
 				dr.DoKeyCtrlV()
-			case termbox.KeyCtrlC:
-				dr.DoKeyCtrlC()
 			case termbox.KeyCtrlD:
 				dr.DoKeyCtrlD()
 			case termbox.KeyCtrlA:
