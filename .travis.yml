@@ -1,11 +1,11 @@
 language: go
-
 go:
-  - 1.5.1
-  - tip
-
+- 1.5.1
+- tip
 install:
-  - go get ./...
-
+- go get ./...
 script:
-  - go test -v
+- go test -v
+notifications:
+  slack:
+    secure: mtAspyDNUeGDr3LG1weHdwHJsgpQFOz6ngYCJuBsvMs+M1SCxH7tABwzUZCtXieoYFeZbEzW2UWNYBfWYEIu2SLIi4hGSj0XshtTw/vHlLCf3RWAPSXHtjXkcBRkHWrbofNZOq7Ake1GTfOhwhwI0t0uk6EVu2ova3RUraT5qjTBM/xuN2FNi2dB0HjtM79625+DOBeJT0HFFeFc5k+ohA+/hE+VnhMigHu5q8pjRTzvBqnvtU/bBXHvWPOA6T52z5/Y7rZz0OcedxtA0SCjEJsxnRZixDf0KpJsHJ32Kr8wsqH4z1h6CW6tTJxiekBZnQ+q2JYKdSiFglnpWQo5tyKApLAtXsJtJrTn+8G4+Kc7wC13cv/6TorZwAGEuEYXA3anV99EecJwX6S0G2TAcsXdEtPp8Myxu07CnPXPFlS/rwvFAAcua6eTYN26pSjDisZn/R4IXivfaG7ClFAVU1ui3jxFayzhzjaGG9lZFbs0jL+ahGQinu3rOvqXTjH7unS+Gud8bj4BpkMje7wcSMm3fQVTL5jSKwEYOcWRo9WiLv8Q2bVMW/rCctjZR4bVOsxZPWbIgNInIx5l82GgrFRv89I1pzkP9PbDCM6ce/dAetYfr9F7lsW8KhttSzRze5y+Bcud600BBH4J+jkTBuzKaXY6NA0wEtWvb75ti7A=
