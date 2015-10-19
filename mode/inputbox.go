@@ -1,4 +1,4 @@
-package yalzo
+package mode
 
 import (
 	"unicode/utf8"
@@ -123,4 +123,11 @@ func (ib *InputBox) InsertStr(s string) {
 
 func (ib *InputBox) GetCursorPos() int {
 	return ib.cursorVOffset + ib.prefixWidth
+}
+
+func NewInputBox(prefix string) *InputBox {
+	return &InputBox{
+		prefix:      prefix,
+		prefixWidth: runewidth.StringWidth(prefix),
+	}
 }

@@ -1,4 +1,4 @@
-package yalzo
+package mode
 
 type Operator interface {
 	DoKeyEsc()
@@ -13,7 +13,6 @@ type Operator interface {
 	DoKeyCtrlW()
 	DoKeyCtrlL()
 	DoKeyCtrlV()
-	DoKeyCtrlC()
 	DoKeyCtrlD()
 	DoKeyCtrlA()
 	DoKeyCtrlR()
@@ -36,7 +35,6 @@ func (n Nothing) DoKeyCtrlX()      {}
 func (n Nothing) DoKeyCtrlW()      {}
 func (n Nothing) DoKeyCtrlL()      {}
 func (n Nothing) DoKeyCtrlV()      {}
-func (n Nothing) DoKeyCtrlC()      {}
 func (n Nothing) DoKeyCtrlD()      {}
 func (n Nothing) DoKeyCtrlA()      {}
 func (n Nothing) DoKeyCtrlR()      {}
