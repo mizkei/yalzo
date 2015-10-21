@@ -8,19 +8,19 @@ install:
 - go get github.com/laher/goxc
 script:
 - go test -v
-- goxc -d . -n yal
+- goxc -d=. -bc="linux, windows, darwin"
 deploy:
   provider: releases
   api_key:
     secure: knLHB9K9y6mebhzzSUEx4NAPTIY9/rUozwq8YjGeyjDwKLBE8SluLVydXFAlXzUL74OflBnAFxaqyLb/cfkwVAJKpPmAh+nbR/pK+rjZyEtYvDnxvsT44YMU7Jc/BAqbAXEHEJFt5iDhLrvjLFu6WVkN8OEAsFvOnZ3A3f0vMZrlTAZSGqocBjXmc05H/XkGldw22jqCAx469+a7uKw0FbMuUzMsBxBrBGLkQe3pmVZsoouQjVngD49G57mIm4Z5j1vlNElltjL1IHa2ROm7frxlSy4qr8KuczTwS17I8uWG0QO1kSj3BJ7+YOSD2VbUS6Htf+U33t1IvA5Qo3HKWRCrzP5yosIoyhXKFw9V94bE1iLsQ85xah0mwkCj/IiMuCHzfybRoBWH0JMNh0eRzfv2ARPbLpIjTHHHVTB1RlIKpUsMmvFE9zi6BMwsCLGTvwgE9JezFV7uUQo4FBSLNk7q7P5yXMVtLkw6WXniItgazRaN+FYfI15L/QP0/6OIZvamzpb7nt/XDMIgj8qJk3bVxyjMrz6Px/7/lgzioxSyLzPa0qCWv5OCvsIvYbmIHn6Oxy2j4IhmIUdBHvy6jErYwDfq/LR/LLlRmo/P4oYmIYVYjovMee+CHGmr9HR9xjT5nYaV6ZZjBqMMdxH019T6WJxXgiX39YuGC3r2jyI=
   file:
-    - snapshot/yal_linux_386.tar.gz
-    - snapshot/yal_linux_arm.tar.gz
-    - snapshot/yal_linux_amd64.tar.gz
-    - snapshot/yal_windows_386.zip
-    - snapshot/yal_windows_amd64.zip
-    - snapshot/yal_darwin_amd64.zip
-    - snapshot/yal_darwin_386.zip
+    - snapshot/yalzo_linux_386.tar.gz
+    - snapshot/yalzo_linux_arm.tar.gz
+    - snapshot/yalzo_linux_amd64.tar.gz
+    - snapshot/yalzo_windows_386.zip
+    - snapshot/yalzo_windows_amd64.zip
+    - snapshot/yalzo_darwin_amd64.zip
+    - snapshot/yalzo_darwin_386.zip
   on:
     repo: mizkei/yalzo
     tags: true
