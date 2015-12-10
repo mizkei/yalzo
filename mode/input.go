@@ -62,9 +62,9 @@ func (i *InputDraw) DoEnter() {
 func (i *InputDraw) Draw() {
 	switch i.Act {
 	case INSERT:
-		i.View.PrintList(2)
+		i.View.PrintList(1)
 	case RENAME:
-		PrintLine(1, "(old) > "+i.View.Lister.GetPresentName(i.View.Cursor))
+		PrintLine(1, "(old) "+i.View.Lister.GetPresentName(i.View.Cursor))
 	}
 
 	PrintLine(0, i.View.Input.GetInputString())

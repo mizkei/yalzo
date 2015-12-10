@@ -82,7 +82,7 @@ func (v *View) PrintList(y int) {
 			bgc = termbox.ColorGreen
 		}
 
-		PrintText(0, y, colorDef, bgc, s)
+		PrintText(2, y, colorDef, bgc, s)
 		y += 1
 	}
 }
