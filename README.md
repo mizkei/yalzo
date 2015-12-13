@@ -16,6 +16,7 @@ binary coming soon...
 ### モード切替
 操作 | キーバインド
 --- | ---
+終了 | C-q
 ノーマル | ESC or C-[
 挿入 | C-w
 入れ替え | C-x
