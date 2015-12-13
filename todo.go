@@ -42,7 +42,7 @@ func repeatSpace(cnt int) []byte {
 	return buf.Bytes()
 }
 
-func fillSpace(text string, limit int) string {
+func FillSpace(text string, limit int) string {
 	ln := runewidth.StringWidth(text)
 	if ln > limit {
 		return runewidth.Truncate(text, limit, "")
@@ -66,7 +66,7 @@ func (t *Todo) createTodoText(no, limit int) string {
 
 	str := no_s + " [ " + label_s + " ] " + t.title
 
-	return fillSpace(str, limit)
+	return FillSpace(str, limit)
 }
 
 type TodoList []Todo

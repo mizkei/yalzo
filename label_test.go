@@ -19,7 +19,12 @@ func TestGetListLength(t *testing.T) {
 func TestGetList(t *testing.T) {
 	initList := initLabelList()
 	ls := initList.GetList(10)
-	expected := []string{"l1", "l2", "l3", "l4"}
+	expected := []string{
+		"  l1      ",
+		"  l2      ",
+		"  l3      ",
+		"  l4      ",
+	}
 
 	for i := range ls {
 		if ls[i] != expected[i] {

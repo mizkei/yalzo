@@ -82,7 +82,12 @@ func (v *View) PrintList(y int) {
 			bgc = termbox.ColorGreen
 		}
 
-		PrintText(2, y, colorDef, bgc, s)
+		if _, t := containsVal(v.Selected, i); t {
+			s = "*" + s
+		} else {
+			s = " " + s
+		}
+		PrintText(0, y, colorDef, bgc, s)
 		y += 1
 	}
 }
