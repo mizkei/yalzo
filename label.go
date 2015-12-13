@@ -7,7 +7,12 @@ func (l *LabelList) GetListLength() int {
 }
 
 func (l *LabelList) GetList(width int) []string {
-	return *l
+	res := make([]string, len(*l))
+	for i, v := range *l {
+		res[i] = FillSpace("  "+v, width)
+	}
+
+	return res
 }
 
 func (l *LabelList) IsInAryRange(i int) bool {
